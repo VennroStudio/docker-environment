@@ -5,7 +5,7 @@ services:
     container_name: ansible-container
     build:
       context: docker
-      dockerfile: ansible/Dockerfile
+      dockerfile: Dockerfile
     volumes:
       - ./docker/ansible:/ansible
       - ~/.ssh:/root/.ssh:ro

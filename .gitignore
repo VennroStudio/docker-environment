@@ -1,4 +1,4 @@
 .idea
-mariadb/dumps
+database/dumps
 docker/.DS_Store
 .DS_Store

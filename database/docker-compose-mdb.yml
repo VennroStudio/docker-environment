@@ -1,0 +1,24 @@
+name: vennro
+
+services:
+  db:
+    image: mariadb:${MARIADB_VERSION}
+    container_name: mariadb-container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-public:/var/lib/mysql
+      - ./docker/server/mariadb/config.cnf:/etc/mysql/conf.d/config.cnf
+    networks:
+      - proxy
+
+volumes:
+  mariadb-public:
+
+networks:
+  proxy:
+    external: true

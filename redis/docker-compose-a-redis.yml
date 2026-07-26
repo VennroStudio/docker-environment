@@ -1,0 +1,15 @@
+name: vennro
+
+services:
+  a-redis:
+    image: redis/redisinsight:latest
+    container_name: a-redis-container
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

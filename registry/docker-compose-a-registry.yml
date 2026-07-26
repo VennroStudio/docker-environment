@@ -1,0 +1,37 @@
+name: vennro
+
+services:
+  registry:
+    image: registry:2
+    container_name: registry-container
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./docker/server/registry/data:/var/lib/registry
+      - ./docker/server/registry/auth:/auth
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+      REGISTRY_AUTH_HTPASSWD_REALM: "Vennro Private Registry"
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    networks:
+      - proxy
+
+  a-registry:
+    image: joxit/docker-registry-ui:latest
+    container_name: registry-ui-container
+    restart: unless-stopped
+    environment:
+      - NGINX_PROXY_PASS_URL=http://registry:5000
+      - REGISTRY_AUTH=true
+      - REGISTRY_TITLE=Vennro Private Registry
+      - DELETE_IMAGES=true
+    depends_on:
+      - registry
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
