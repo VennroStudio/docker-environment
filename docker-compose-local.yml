@@ -1,0 +1,50 @@
+name: vennro
+
+services:
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx-container
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./docker/local/nginx/data:/data
+      - ./docker/local/nginx/letsencrypt:/etc/letsencrypt
+    networks:
+      - proxy
+
+  db:
+    image: mariadb:${MARIADB_VERSION}
+    container_name: mariadb-container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb-public:/var/lib/mysql
+      - ./docker/local/mariadb/config.cnf:/etc/mysql/conf.d/config.cnf
+    networks:
+      - proxy
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    platform: linux/amd64
+    container_name: phpmyadmin-container
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=mariadb-container
+    volumes:
+      - ./docker/local/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
+    networks:
+      - proxy
+
+volumes:
+  mariadb-public:
+
+networks:
+  proxy:
+    external: true

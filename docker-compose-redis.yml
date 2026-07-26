@@ -1,0 +1,24 @@
+name: vennro
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container
+    restart: unless-stopped
+    env_file: .env
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - proxy
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: redisinsight-container
+    restart: unless-stopped
+    ports:
+      - "5540:5540"
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

@@ -1,0 +1,136 @@
+---
+- name: Setup Docker Infrastructure on Production Server
+  hosts: production
+  become: true
+
+  vars:
+      docker_repo: https://github.com/VennroStudio/docker.git
+      docker_dest: /home/vennro/infrastructure
+      docker_branch: main
+
+  tasks:
+      # ========================================
+      # БЛОК 1: УСТАНОВКА ЗАВИСИМОСТЕЙ И DOCKER НА СЕРВЕР
+      # ========================================
+
+      - name: Update apt cache
+        ansible.builtin.apt:
+            update_cache: true
+            cache_valid_time: 3600
+        tags: [setup]
+
+      - name: Install system dependencies
+        ansible.builtin.apt:
+            name:
+                - curl
+                - ca-certificates
+                - gnupg
+                - software-properties-common
+                - apt-transport-https
+                - git
+                - apache2-utils
+                - make
+            state: present
+        tags: [setup]
+
+      - name: Create keyrings directory
+        ansible.builtin.file:
+            path: /etc/apt/keyrings
+            state: directory
+            mode: '0755'
+        tags: [setup]
+
+      - name: Add Docker GPG key
+        ansible.builtin.apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            keyring: /etc/apt/keyrings/docker.gpg
+            state: present
+        tags: [setup]
+
+      - name: Add Docker repository
+        ansible.builtin.apt_repository:
+            repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+            state: present
+            filename: docker
+        tags: [setup]
+
+      - name: Install Docker packages
+        ansible.builtin.apt:
+            name:
+                - docker-ce
+                - docker-ce-cli
+                - containerd.io
+                - docker-compose-plugin
+            state: present
+            update_cache: true
+        tags: [setup]
+
+      - name: Start Docker service
+        ansible.builtin.systemd:
+            name: docker
+            state: started
+            enabled: true
+        tags: [setup]
+
+      - name: Add user to docker group
+        ansible.builtin.user:
+            name: "{{ ansible_user }}"
+            groups: docker
+            append: true
+        tags: [setup]
+
+      # ========================================
+      # БЛОК 2: КЛОНИРОВАНИЕ РЕПОЗИТОРИЯ
+      # ========================================
+
+      - name: Clone docker infrastructure repository
+        ansible.builtin.git:
+            repo: "{{ docker_repo }}"
+            dest: "{{ docker_dest }}"
+            version: "{{ docker_branch }}"
+            force: true
+        become_user: "{{ ansible_user }}"
+        tags: [deploy]
+
+      # ========================================
+      # БЛОК 3: КОПИРОВАНИЕ .ENV.SERVER
+      # ========================================
+
+      - name: Copy Docker Hub credentials
+        ansible.builtin.copy:
+            src: .env.server
+            dest: "{{ docker_dest }}/.env"
+            owner: "{{ ansible_user }}"
+            group: "{{ ansible_user }}"
+            mode: '0600'
+        tags: [ deploy ]
+
+      # ========================================
+      # БЛОК 4: ЗАПУСК DOCKER COMPOSE
+      # ========================================
+
+      - name: Login to Docker Hub
+        ansible.builtin.shell: |
+            source {{ docker_dest }}/.env
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+        args:
+            executable: /bin/bash
+        become_user: "{{ ansible_user }}"
+        tags: [deploy]
+        ignore_errors: true
+
+      - name: Initialize all infrastructure with make init-all
+        ansible.builtin.shell: |
+            cd {{ docker_dest }}
+            make init
+        args:
+            executable: /bin/bash
+        become_user: "{{ ansible_user }}"
+        tags: [deploy]
+        register: make_result
+
+      - name: Display make initialization output
+        ansible.builtin.debug:
+            msg: "{{ make_result.stdout_lines }}"
+        tags: [deploy]
+        when: make_result.stdout_lines is defined
