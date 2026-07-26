@@ -1,6 +1,11 @@
+-include .env
+export
+
 COMPOSE_FILE ?= docker-compose-rustfs.yml
 
-.PHONY: help env init up down restart docker-up docker-down docker-pull docker-build logs ps config
+.PHONY: help env network init up down restart
+.PHONY: docker-up docker-down docker-pull docker-build logs ps config
+.PHONY: volume-inspect volume-rm
 
 ##@ Помощь
 
@@ -17,10 +22,15 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
+##@ Сеть
+
+network: env ## Создать внешнюю сеть, если она ещё не существует
+	@docker network inspect $(NETWORK) >/dev/null 2>&1 || docker network create $(NETWORK)
+
 ##@ RustFS
 
-init: env docker-down docker-pull docker-build docker-up ## Инициализировать проект
-up: docker-up ## Поднять проект
+init: env network docker-down docker-pull docker-build docker-up ## Инициализировать проект
+up: network docker-up ## Поднять проект
 down: docker-down ## Удалить проект
 restart: down up ## Перезапустить проект
 
@@ -48,3 +58,11 @@ ps: ## Показать статус контейнера
 
 config: ## Показать итоговый конфиг
 	docker compose -f $(COMPOSE_FILE) config
+
+##@ Хранилище
+
+volume-inspect: ## Показать информацию о хранилище
+	docker volume inspect $(VOLUME)
+
+volume-rm: ## Удалить хранилище (полная потеря данных)
+	docker volume rm $(VOLUME)

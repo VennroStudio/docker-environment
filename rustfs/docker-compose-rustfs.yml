@@ -5,7 +5,7 @@ services:
     image: rustfs/rustfs:latest
     container_name: rustfs-container
     volumes:
-      - storage-rustfs:/data
+      - volume-name:/data
     environment:
       RUSTFS_ACCESS_KEY: ${RUSTFS_ACCESS_KEY}
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY}
@@ -19,8 +19,8 @@ services:
       - network-name
 
 volumes:
-  storage-rustfs:
-    name: storage-rustfs
+  volume-name:
+    name: ${VOLUME}
 
 networks:
   network-name:
