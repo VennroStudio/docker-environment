@@ -1,4 +1,4 @@
-name: vennro
+name: docker-structure
 
 services:
   PhpMyAdmin:
@@ -9,7 +9,7 @@ services:
     environment:
       - PMA_HOST=mariadb-container
     volumes:
-      - ./docker/server/phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
+      - ./phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
     networks:
       - proxy
 

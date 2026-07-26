@@ -1,4 +1,4 @@
-name: vennro
+name: docker-structure
 
 services:
   db:
@@ -12,7 +12,7 @@ services:
       - "3306:3306"
     volumes:
       - mariadb-public:/var/lib/mysql
-      - ./docker/server/mariadb/config.cnf:/etc/mysql/conf.d/config.cnf
+      - ./mariadb/config.cnf:/etc/mysql/conf.d/config.cnf
     networks:
       - proxy
 

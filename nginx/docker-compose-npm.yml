@@ -1,4 +1,4 @@
-name: vennro
+name: docker-structure
 
 services:
   nginx-proxy-manager:
@@ -10,7 +10,11 @@ services:
       - '81:81'
       - '443:443'
     volumes:
-      - ./docker/server/nginx/data:/data
-      - ./docker/server/nginx/letsencrypt:/etc/letsencrypt
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
     networks:
       - proxy
+
+networks:
+  proxy:
+    external: true

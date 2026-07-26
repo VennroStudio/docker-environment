@@ -1,4 +1,4 @@
-name: vennro
+name: docker-structure
 
 services:
   registry:
