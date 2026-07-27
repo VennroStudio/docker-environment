@@ -37,7 +37,7 @@ docker-up: ## Поднять контейнер
 	docker compose -f $(COMPOSE_FILE) up -d
 
 docker-down: ## Остановить и удалить контейнер
-	docker compose -f $(COMPOSE_FILE) down --remove-orphans
+	docker compose -f $(COMPOSE_FILE) down
 
 docker-pull: ## Скачать свежий образ
 	docker compose -f $(COMPOSE_FILE) pull

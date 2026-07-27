@@ -3,7 +3,7 @@ export
 
 COMPOSE_FILE ?= docker-compose-mariadb.yml
 
-.PHONY: help env network init up down restart
+.PHONY: help env cnf network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: volume-inspect volume-rm
 
@@ -22,6 +22,11 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
+##@ Конфиг
+
+cnf: ## Безопасно скопировать config.cnf из example
+	@[ -f config.cnf ] || cp config.cnf.example config.cnf
+
 ##@ Сеть
 
 network: env ## Создать внешнюю сеть, если она ещё не существует
@@ -29,7 +34,7 @@ network: env ## Создать внешнюю сеть, если она ещё �
 
 ##@ MariaDB
 
-init: env network docker-pull docker-up ## Инициализировать проект
+init: env cnf network docker-pull docker-up ## Инициализировать проект
 up: network docker-up ## Поднять контейнеры
 down: docker-down ## Остановить и удалить контейнеры
 restart: down up ## Перезапустить контейнеры
@@ -38,7 +43,7 @@ docker-up: ## Поднять контейнеры
 	docker compose -f $(COMPOSE_FILE) up -d
 
 docker-down: ## Остановить и удалить контейнеры
-	docker compose -f $(COMPOSE_FILE) down --remove-orphans
+	docker compose -f $(COMPOSE_FILE) down
 
 docker-pull: ## Скачать свежие образы
 	docker compose -f $(COMPOSE_FILE) pull

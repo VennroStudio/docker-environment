@@ -2,4 +2,6 @@
 .env.prod
 .DS_Store
 
+config.cnf
+
 mariadb-data/

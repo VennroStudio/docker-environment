@@ -1,0 +1,33 @@
+[mysqld]
+
+bind-address = 0.0.0.0                        # Слушать все интерфейсы внутри контейнера
+
+character-set-server = utf8mb4                # Кодировка по умолчанию
+collation-server = utf8mb4_unicode_ci         # Сортировка по умолчанию
+
+max_allowed_packet = 256M                     # Максимальный размер пакета
+
+wait_timeout = 600                            # Таймаут неактивного соединения, сек
+interactive_timeout = 600                     # Таймаут интерактивного клиента, сек
+
+innodb_buffer_pool_size = 1G                  # Достаточно для обычной локальной разработки
+innodb_log_file_size = 128M                   # Умеренный размер redo log
+innodb_file_per_table = 1                     # Отдельный .ibd для каждой таблицы
+innodb_io_capacity = 200                      # Нормальное значение для локального диска
+innodb_io_capacity_max = 400                  # Допустимый предел при нагрузке
+
+skip-name-resolve                             # Не выполнять DNS-резолвинг клиентов
+
+slow_query_log = 1                            # Записывать медленные запросы
+slow_query_log_file = /var/lib/mysql/mariadb-slow.log
+long_query_time = 5                           # Порог медленного запроса, сек
+
+max_connections = 100                        # Достаточно для локальной разработки
+
+innodb_flush_log_at_trx_commit = 1            # Сохранять production-поведение транзакций
+sync_binlog = 1                               # Сохранять production-поведение binlog
+
+table_open_cache = 1000                       # Кэш открытых таблиц
+thread_cache_size = 32                        # Кэш потоков соединений
+tmp_table_size = 64M                          # Лимит временных таблиц в памяти
+max_heap_table_size = 64M                     # Лимит MEMORY-таблиц
