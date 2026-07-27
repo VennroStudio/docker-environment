@@ -1,0 +1,4 @@
+.env
+.env.prod
+auth/
+.DS_Store

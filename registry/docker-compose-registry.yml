@@ -1,20 +1,40 @@
-name: docker-structure
+name: ${PROJECT_NAME}
 
 services:
+  registry:
+    image: registry:2
+    container_name: registry-container
+    restart: unless-stopped
+    volumes:
+      - volume-name:/var/lib/registry
+      - ./auth:/auth:ro
+    environment:
+      REGISTRY_AUTH: htpasswd
+      REGISTRY_AUTH_HTPASSWD_PATH: ${AUTH_PATH}
+      REGISTRY_AUTH_HTPASSWD_REALM: ${REGISTRY_AUTH_REALM}
+      REGISTRY_STORAGE_DELETE_ENABLED: "${REGISTRY_STORAGE_DELETE_ENABLED}"
+    networks:
+      - network-name
+
   a-registry:
     image: joxit/docker-registry-ui:latest
-    container_name: registry-ui-container
+    container_name: a-registry-container
     restart: unless-stopped
     environment:
-      - NGINX_PROXY_PASS_URL=http://registry:5000
-      - REGISTRY_AUTH=true
-      - REGISTRY_TITLE=Vennro Private Registry
-      - DELETE_IMAGES=true
+      NGINX_PROXY_PASS_URL: http://registry:5000
+      REGISTRY_AUTH: "${A_REGISTRY_AUTH}"
+      REGISTRY_TITLE: ${A_REGISTRY_TITLE}
+      DELETE_IMAGES: "${A_REGISTRY_DELETE_IMAGES}"
     depends_on:
       - registry
     networks:
-      - proxy
+      - network-name
+
+volumes:
+  volume-name:
+    name: ${VOLUME}
 
 networks:
-  proxy:
+  network-name:
+    name: ${NETWORK}
     external: true
