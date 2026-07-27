@@ -1,19 +1,21 @@
-name: docker-structure
+name: ${PROJECT_NAME}
 
 services:
   portainer:
-    container_name: portainer-container
-    restart: always
     image: portainer/portainer-ce:latest
+    container_name: portainer-container
+    restart: unless-stopped
     volumes:
-      - portainer_data:/data
+      - volume-name:/data
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
-      - proxy
+      - network-name
 
 volumes:
-  portainer_data:
+  volume-name:
+    name: ${VOLUME}
 
 networks:
-  proxy:
+  network-name:
+    name: ${NETWORK}
     external: true
