@@ -1,0 +1,22 @@
+name: ${PROJECT_NAME}
+
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: livekit-container
+    restart: unless-stopped
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./livekit.yaml:/etc/livekit.yaml:ro
+    environment:
+      LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
+    ports:
+      - "7881:7881/tcp"
+      - "50000-60000:50000-60000/udp"
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
