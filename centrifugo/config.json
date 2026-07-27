@@ -1,0 +1,16 @@
+{
+  "channel": {
+    "without_namespace": {
+      "allow_subscribe_for_client": false
+    },
+    "namespaces": [
+      {
+        "name": "public",
+        "presence": true,
+        "join_leave": true,
+        "force_push_join_leave": true,
+        "allow_presence_for_subscriber": true
+      }
+    ]
+  }
+}
