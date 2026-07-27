@@ -1,5 +1,6 @@
 .env
 .env.prod
-auth/
 .DS_Store
+
+auth/
 registry-data/

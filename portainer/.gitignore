@@ -1,2 +1,5 @@
-portainer-data/
 .env
+.env.prod
+.DS_Store
+
+portainer-data/

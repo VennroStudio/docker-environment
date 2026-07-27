@@ -2,4 +2,4 @@
 .env.prod
 .DS_Store
 
-rustfs-data/
+rabbitmq-data/

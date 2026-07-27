@@ -1,2 +1,5 @@
 .env
+.env.prod
+.DS_Store
+
 mariadb-data/
