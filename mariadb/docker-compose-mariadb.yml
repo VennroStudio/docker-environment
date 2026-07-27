@@ -1,0 +1,36 @@
+name: ${PROJECT_NAME}
+
+services:
+  mariadb:
+    image: mariadb:${MARIADB_VERSION}
+    container_name: mariadb-container
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: '%'
+    volumes:
+      - volume-name:/var/lib/mysql
+      - ./config.cnf:/etc/mysql/conf.d/config.cnf
+    networks:
+      - network-name
+
+  a-mariadb:
+    image: phpmyadmin/phpmyadmin
+    platform: linux/amd64
+    container_name: a-mariadb-container
+    restart: unless-stopped
+    environment:
+      - PMA_HOST=mariadb-container
+    volumes:
+      - ./phpmyadmin/config.inc.php:/etc/phpmyadmin/config.inc.php
+    networks:
+      - network-name
+
+volumes:
+  volume-name:
+    name: ${VOLUME}
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
