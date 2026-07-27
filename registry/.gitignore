@@ -2,3 +2,4 @@
 .env.prod
 auth/
 .DS_Store
+registry-data/
