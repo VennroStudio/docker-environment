@@ -1,7 +1,7 @@
-name: docker-structure
+name: ${PROJECT_NAME}
 
 services:
-  nginx-proxy-manager:
+  npm:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginx-container
     restart: unless-stopped
@@ -13,8 +13,9 @@ services:
       - ./data:/data
       - ./letsencrypt:/etc/letsencrypt
     networks:
-      - proxy
+      - network-name
 
 networks:
-  proxy:
+  network-name:
+    name: ${NETWORK}
     external: true
