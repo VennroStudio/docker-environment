@@ -8,33 +8,40 @@ Docker Registry с админ-панелью `a-registry`.
 make env
 ```
 
-Отредактируй `.env`, задай `REGISTRY_PASSWORD`, затем:
+Отредактируйте `.env` — обязательно задайте `REGISTRY_PASSWORD`. Затем:
 
 ```bash
 make init
 ```
 
 Команда:
-- создаст внешнюю Docker-сеть, если её ещё нет,
-- создаст `auth/htpasswd`,
-- остановит старые контейнеры,
+- создаст внешнюю Docker-сеть (если её ещё нет),
+- создаст `auth/htpasswd` (если его ещё нет),
 - скачает образы и поднимет контейнеры.
 
 ## Настройка `.env`
 
-| Переменная | Описание |
-|---|---|
-| `PROJECT_NAME` | Название проекта Docker Compose |
-| `NETWORK` | Внешняя Docker-сеть |
-| `VOLUME` | Имя Docker volume для хранения данных |
-| `REGISTRY_PORT` | Порт Registry на хосте |
-| `REGISTRY_USER` | Пользователь Registry |
-| `REGISTRY_PASSWORD` | Пароль Registry |
-| `REGISTRY_AUTH_REALM` | Realm для basic auth |
-| `REGISTRY_STORAGE_DELETE_ENABLED` | `true`/`false` — разрешить удаление образов |
-| `A_REGISTRY_TITLE` | Заголовок админ-панели |
-| `A_REGISTRY_AUTH` | `true`/`false` — включить auth в админ-панели |
-| `A_REGISTRY_DELETE_IMAGES` | `true`/`false` — разрешить удаление из админ-панели |
+Перед первым запуском отредактируй `.env`:
+
+| Переменная                         | Описание                                                          |
+|-------------------------------------|---------------------------------------------------------------------|
+| `PROJECT_NAME`                     | Название проекта (влияет на префикс контейнеров/volumes в Docker) |
+| `NETWORK`                          | Имя внешней Docker-сети, к которой подключаются контейнеры        |
+| `VOLUME`                           | Имя Docker volume для хранения образов                            |
+| `AUTH_PATH`                        | Путь к файлу `htpasswd` (по умолчанию `auth/htpasswd`)             |
+| `REGISTRY_USER`                    | Логин для доступа к Registry                                      |
+| `REGISTRY_PASSWORD`                | Пароль для доступа к Registry                                     |
+| `REGISTRY_AUTH_REALM`              | Realm для HTTP Basic Auth                                         |
+| `REGISTRY_STORAGE_DELETE_ENABLED`  | `true`/`false` — разрешить удаление образов через API              |
+| `A_REGISTRY_TITLE`                 | Заголовок в веб-интерфейсе `a-registry`                           |
+| `A_REGISTRY_AUTH`                  | `true`/`false` — включить авторизацию в веб-интерфейсе             |
+| `A_REGISTRY_DELETE_IMAGES`         | `true`/`false` — разрешить удаление образов из веб-интерфейса      |
+
+⚠️ Порты наружу не пробрасываются — доступ к контейнеру идёт через внешнюю Docker-сеть, указанную в `NETWORK`. Для внешнего доступа добавьте:
+```yaml
+ports:
+  - "5000:5000"
+```
 
 ## Команды Makefile
 
@@ -42,12 +49,11 @@ make init
 
 | Команда | Действие |
 |---|---|
-| `make init` | Первичная инициализация: `.env` + сеть + auth + down + pull + up |
+| `make init` | Первичная инициализация: `.env` + сеть + auth + pull + up |
 | `make up` | Поднять контейнеры |
 | `make down` | Остановить и удалить контейнеры |
 | `make restart` | Перезапустить контейнеры |
-| `make auth` | Пересоздать `auth/htpasswd` |
+| `make auth` | Создать `auth/htpasswd`, если его ещё нет |
 | `make logs` | Логи контейнеров (последние 100 строк, live) |
-| `make ps` | Статус контейнеров |
-| `make config` | Итоговый Docker Compose config |
-| `make volume-rm` | Удалить хранилище вручную |
+| `make volume-inspect` | Показать информацию о хранилище (данные не удаляются при `make down`) |
+| `make volume-rm` | Удалить хранилище вручную (полная потеря данных) |

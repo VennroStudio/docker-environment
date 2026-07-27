@@ -36,9 +36,6 @@ restart: down up ## Перезапустить проект
 
 auth: env ## Создать htpasswd для Registry, если он ещё не существует
 	@[ -f $(AUTH_PATH) ] && exit 0; \
-	[ -n "$(REGISTRY_USER)" ] || { echo "REGISTRY_USER is empty"; exit 1; }; \
-	[ -n "$(REGISTRY_PASSWORD)" ] || { echo "REGISTRY_PASSWORD is empty"; exit 1; }; \
-	[ "$(REGISTRY_PASSWORD)" != "change-me" ] || { echo "Set REGISTRY_PASSWORD in .env"; exit 1; }; \
 	mkdir -p $(dir $(AUTH_PATH)); \
 	docker run --rm --entrypoint htpasswd httpd:2 -Bbn "$(REGISTRY_USER)" "$(REGISTRY_PASSWORD)" > $(AUTH_PATH); \
 	chmod 600 $(AUTH_PATH)
