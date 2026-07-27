@@ -1,0 +1,23 @@
+name: ${PROJECT_NAME}
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-container
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - volume-name:/var/lib/rabbitmq
+    networks:
+      - network-name
+
+volumes:
+  volume-name:
+    name: ${VOLUME}
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
