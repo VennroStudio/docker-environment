@@ -100,6 +100,10 @@ unarchive: ## Разархивирование для формата data-DD-MM-
 clear-mac-copy: ## Очистка файлов MAC в архиве
 	find . -type f -name '._*' -delete
 
+##@ Hosts
+hosts: ## Добавить локальный домен
+	sudo nano /etc/hosts
+
 ##@ Git
 push: ## Auto save
 	git add .
