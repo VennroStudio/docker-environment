@@ -4,8 +4,10 @@ include .env.example
 export
 
 COMPOSE_FILE ?= docker-compose-rclone.yml
+MAKE_BIN ?= $(shell command -v make)
 
-.PHONY: help env init config backup deploy
+.PHONY: help env init config archive backup deploy
+.PHONY: cron-install cron-list cron-remove
 .PHONY: docker-pull logs ps compose-config
 
 ##@ Помощь
@@ -30,11 +32,26 @@ init: env docker-pull ## Инициализировать rclone
 cnf: env ## Интерактивно настроить rclone.conf
 	docker compose -f $(COMPOSE_FILE) run --rm rclone config
 
-backup: env ## Отправить storage на удалённое хранилище
-	docker compose -f $(COMPOSE_FILE) run --rm rclone copy /storage $(RCLONE_REMOTE) --progress
+archive: env ## Создать архив storage
+	@mkdir -p ../storage/archives
+	tar --exclude='./archives' --exclude='./.gitignore' --exclude='*/.gitkeep' -czvf "../storage/archives/$(ARCHIVE_NAME)-$$(date +%Y-%m-%d_%H-%M-%S).tar.gz" -C ../storage .
+
+backup: archive ## Создать архив и отправить его на удалённое хранилище
+	docker compose -f $(COMPOSE_FILE) run --rm rclone copy /storage/archives $(RCLONE_REMOTE) --progress
 
 deploy: ## Отправить готовый rclone.conf на сервер
 	scp -P $(PORT) config/rclone.conf $(HOST):$(DOCKER_SERVER_PATH)/rclone/config/rclone.conf
+
+cron-install: env ## Установить cron-задачу для автоматического rclone backup
+	@mkdir -p logs
+	@(crontab -l 2>/dev/null | grep -v 'docker-server rclone backup'; \
+	  echo '$(RCLONE_CRON) cd $(CURDIR) && $(MAKE_BIN) backup >> logs/cron.log 2>&1 # docker-server rclone backup') | crontab -
+
+cron-list: ## Показать cron-задачи rclone
+	@crontab -l 2>/dev/null | grep 'docker-server rclone backup' || true
+
+cron-remove: ## Удалить cron-задачу rclone
+	@crontab -l 2>/dev/null | grep -v 'docker-server rclone backup' | crontab -
 
 docker-pull: ## Скачать свежий образ
 	docker compose -f $(COMPOSE_FILE) pull
