@@ -32,15 +32,33 @@ init: env docker-pull ## Инициализировать rclone
 cnf: env ## Интерактивно настроить rclone.conf
 	docker compose -f $(COMPOSE_FILE) run --rm rclone config
 
-archive: env ## Создать архив storage
-	@mkdir -p ../storage/archives
-	tar --exclude='./archives' --exclude='./.gitignore' --exclude='*/.gitkeep' -czvf "../storage/archives/$(ARCHIVE_NAME)-$$(date +%Y-%m-%d_%H-%M-%S).tar.gz" -C ../storage .
+archive: env ## Создать архив из BACKUP_PATHS
+	@mkdir -p archives
+	@set -eu; \
+	if [ -z "$(strip $(BACKUP_PATHS))" ]; then \
+		echo "BACKUP_PATHS must be set in .env" >&2; \
+		exit 1; \
+	fi; \
+	for path in $(BACKUP_PATHS); do \
+		if [ ! -e "../$$path" ]; then \
+			echo "Missing backup path: $$path" >&2; \
+			exit 1; \
+		fi; \
+	done; \
+	tar -czf "archives/$(ARCHIVE_NAME)-$$(date +%Y-%m-%d_%H-%M-%S).tar.gz" -C .. $(BACKUP_PATHS)
 
 archive-prune: env ## Оставить только последние ARCHIVE_KEEP архивов
-	@ls -1t ../storage/archives/$(ARCHIVE_NAME)-*.tar.gz 2>/dev/null | tail -n +$$(($(ARCHIVE_KEEP) + 1)) | xargs -r rm --
+	@set -eu; \
+	count=0; \
+	for file in $$(ls -1t archives/$(ARCHIVE_NAME)-*.tar.gz 2>/dev/null || true); do \
+		count=$$((count + 1)); \
+		if [ "$$count" -gt "$(ARCHIVE_KEEP)" ]; then \
+			rm -f "$$file"; \
+		fi; \
+	done
 
 backup: archive archive-prune ## Создать архив и отправить его на удалённое хранилище
-	docker compose -f $(COMPOSE_FILE) run --rm rclone copy /storage/archives $(RCLONE_REMOTE) --progress
+	docker compose -f $(COMPOSE_FILE) run --rm rclone copy /archives $(RCLONE_REMOTE) --progress
 
 deploy: ## Отправить готовый rclone.conf на сервер
 	scp -P $(PORT) config/rclone.conf $(HOST):$(DOCKER_SERVER_PATH)/rclone/config/rclone.conf

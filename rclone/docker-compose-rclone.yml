@@ -8,4 +8,4 @@ services:
       RCLONE_CONFIG: /config/rclone/rclone.conf
     volumes:
       - ./config:/config/rclone
-      - ../storage:/storage:ro
+      - ./archives:/archives:ro

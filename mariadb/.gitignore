@@ -1,6 +1,8 @@
-.env
-.env.prod
-.DS_Store
-
-config.cnf
-phpmyadmin/config.inc.php
+*
+!.env.example
+!.gitignore
+!docker-compose-*.yml
+!Makefile
+!README.md
+!config.cnf.example
+!phpmyadmin/config.inc.php.example

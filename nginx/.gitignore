@@ -1,6 +1,6 @@
-.env
-.env.prod
-.DS_Store
-
-data/
-letsencrypt/
+*
+!.env.example
+!.gitignore
+!docker-compose-*.yml
+!Makefile
+!README.md
