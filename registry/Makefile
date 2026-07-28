@@ -6,7 +6,7 @@ COMPOSE_FILE ?= docker-compose-registry.yml
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
-.PHONY: auth volume-inspect volume-rm
+.PHONY: auth
 
 ##@ Помощь
 
@@ -62,11 +62,3 @@ ps: ## Показать статус контейнеров
 
 config: ## Показать итоговый конфиг
 	docker compose -f $(COMPOSE_FILE) config
-
-##@ Данные
-
-volume-inspect: ## Показать информацию о хранилище
-	docker volume inspect $(VOLUME)
-
-volume-rm: ## Удалить хранилище (полная потеря данных)
-	docker volume rm $(VOLUME)

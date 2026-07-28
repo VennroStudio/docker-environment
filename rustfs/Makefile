@@ -6,7 +6,6 @@ COMPOSE_FILE ?= docker-compose-rustfs.yml
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull docker-build logs ps config
-.PHONY: volume-inspect volume-rm
 
 ##@ Помощь
 
@@ -59,11 +58,3 @@ ps: ## Показать статус контейнера
 
 config: ## Показать итоговый конфиг
 	docker compose -f $(COMPOSE_FILE) config
-
-##@ Хранилище
-
-volume-inspect: ## Показать информацию о хранилище
-	docker volume inspect $(VOLUME)
-
-volume-rm: ## Удалить хранилище (полная потеря данных)
-	docker volume rm $(VOLUME)

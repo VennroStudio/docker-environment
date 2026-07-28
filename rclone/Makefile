@@ -6,7 +6,7 @@ export
 COMPOSE_FILE ?= docker-compose-rclone.yml
 MAKE_BIN ?= $(shell command -v make)
 
-.PHONY: help env init config archive archive-prune backup deploy
+.PHONY: help env init cnf config archive archive-prune backup deploy
 .PHONY: cron-install cron-list cron-remove
 .PHONY: docker-pull logs ps compose-config
 

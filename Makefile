@@ -1,10 +1,10 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs
+.PHONY: env help init centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs tiredofit
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
-.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs
-.PHONY: rclone-install rclone-config rclone-test rclone-backup archive unarchive clear-mac-copy hosts push
+.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-tiredofit deploy-rclone
+.PHONY: archive unarchive clear-mac-copy hosts push
 
 ##@ Помощь
 
@@ -52,9 +52,12 @@ registry: ## Инициализировать Registry
 rustfs: ## Инициализировать RustFS
 	$(MAKE) -C rustfs init
 
+tiredofit: ## Инициализировать TiredOfIt DB Backup
+	$(MAKE) -C tiredofit init
+
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs ## Отправить все .env.prod на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
 
 deploy-centrifugo: ## Отправить .env.prod Centrifugo на сервер
 	scp -P $(PORT) centrifugo/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/centrifugo/.env
@@ -83,18 +86,11 @@ deploy-registry: ## Отправить .env.prod Registry на сервер
 deploy-rustfs: ## Отправить .env.prod RustFS на сервер
 	scp -P $(PORT) rustfs/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rustfs/.env
 
-##@ Rclone
-rclone-install: ## Установить rclone на сервер
-	sudo -v ; curl https://rclone.org/install.sh | sudo bash
+deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
+	scp -P $(PORT) tiredofit/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/tiredofit/.env
 
-rclone-config: ## Настроить подключение к Яндекс Диску
-	rclone config
-
-rclone-test: ## Проверить подключение к Яндекс Диску
-	rclone ls yadisk:test-connect/
-
-rclone-backup: ## Создать бекап PATH_TO_FILE=/home/form.sql на Яндекс Диск в BACKUP_DIR=database
-	rclone copy $(PATH_TO_FILE) yadisk:backup/$(BACKUP_DIR)
+deploy-rclone: ## Отправить rclone.conf на сервер
+	$(MAKE) -C rclone deploy
 
 ##@ Архиватор
 archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName
