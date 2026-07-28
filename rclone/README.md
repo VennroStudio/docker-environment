@@ -62,6 +62,40 @@ $(DOCKER_SERVER_PATH)/rclone/config/rclone.conf
 
 Для deploy используются `HOST`, `PORT`, `DOCKER_SERVER_PATH` из общего `.env` в корне проекта.
 
+## Cron
+
+Расписание задаётся в `.env`:
+
+```env
+RCLONE_CRON=30 3 * * *
+```
+
+Пример выше запускает `make backup` каждый день в `03:30`.
+
+Установить cron-задачу:
+
+```bash
+make cron-install
+```
+
+Показать cron-задачу:
+
+```bash
+make cron-list
+```
+
+Удалить cron-задачу:
+
+```bash
+make cron-remove
+```
+
+Логи cron пишутся в:
+
+```text
+rclone/logs/cron.log
+```
+
 ## Команды Makefile
 
 Полный список — `make help`.
