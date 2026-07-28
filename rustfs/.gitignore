@@ -1,5 +1,6 @@
-.env
-.env.prod
-.DS_Store
-
-rustfs-data/
+*
+!.env.example
+!.gitignore
+!docker-compose-*.yml
+!Makefile
+!README.md

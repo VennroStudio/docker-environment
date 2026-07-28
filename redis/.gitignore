@@ -1,5 +1,6 @@
-.env
-.env.prod
-.DS_Store
-
-redis-data/
+*
+!.env.example
+!.gitignore
+!docker-compose-*.yml
+!Makefile
+!README.md

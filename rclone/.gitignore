@@ -1,9 +1,14 @@
-.env
-.env.prod
-.DS_Store
+*
+!.env.example
+!.gitignore
+!docker-compose-*.yml
+!Makefile
+!README.md
 
+!config/
 config/*
 !config/.gitkeep
 
+!archives/
 archives/*
 !archives/.gitkeep
