@@ -27,6 +27,7 @@ env: ## Безопасно скопировать .env из example
 
 cnf: ## Безопасно скопировать config.cnf из example
 	@[ -f config.cnf ] || cp config.cnf.example config.cnf
+	@[ -f phpmyadmin/config.inc.php ] || cp phpmyadmin/config.inc.php.example phpmyadmin/config.inc.php
 
 ##@ Сеть
 

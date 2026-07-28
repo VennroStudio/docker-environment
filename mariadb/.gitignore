@@ -3,5 +3,6 @@
 .DS_Store
 
 config.cnf
+phpmyadmin/config.inc.php
 
 mariadb-data/

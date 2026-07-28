@@ -76,3 +76,32 @@ deploy-registry: ## Отправить .env.prod Registry на сервер
 
 deploy-rustfs: ## Отправить .env.prod RustFS на сервер
 	scp -P $(PORT) rustfs/.env.prod $(HOST):rustfs/.env
+
+##@ Rclone
+rclone-install: ## Установить rclone на сервер
+	sudo -v ; curl https://rclone.org/install.sh | sudo bash
+
+rclone-config: ## Настроить подключение к Яндекс Диску
+	rclone config
+
+rclone-test: ## Проверить подключение к Яндекс Диску
+	rclone ls yadisk:test-connect/
+
+rclone-backup-s3: ## Создать бекап FOLDER=/folderName на Яндекс Диск в BACKUP_NAME=name
+	rclone copy $(FOLDER) yadisk:backup/$(BACKUP_NAME)
+
+##@ Архиватор
+archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName
+	tar -czvf "data-$(DATE).tar.gz" "$(FOLDER)/"
+
+unarchive: ## Разархивирование для формата data-DD-MM-YYYY, передать DATE-ARG=DD-MM-YYYY
+	tar -xzvf "data-$(DATE-ARG).tar.gz"
+
+clear-mac-copy: ## Очистка файлов MAC в архиве
+	find . -type f -name '._*' -delete
+
+##@ Git
+push: ## Auto save
+	git add .
+	git commit -m "update"
+	git push
