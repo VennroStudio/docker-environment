@@ -1,9 +1,10 @@
 -include .env
 export
 
-.PHONY: help init centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs
+.PHONY: env help init centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs
+.PHONY: rclone-install rclone-config rclone-test rclone-backup archive unarchive clear-mac-copy hosts push
 
 ##@ Помощь
 
@@ -14,6 +15,11 @@ help: ## Показать список команд
 	   /^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 }' \
 	   $(MAKEFILE_LIST)
 	@echo ""
+
+##@ .env
+
+env: ## Безопасно скопировать .env из example
+	@[ -f .env ] || cp .env.example .env
 
 ##@ Инициализация
 
@@ -51,31 +57,31 @@ rustfs: ## Инициализировать RustFS
 deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs ## Отправить все .env.prod на сервер
 
 deploy-centrifugo: ## Отправить .env.prod Centrifugo на сервер
-	scp -P $(PORT) centrifugo/.env.prod $(HOST):centrifugo/.env
+	scp -P $(PORT) centrifugo/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/centrifugo/.env
 
 deploy-livekit: ## Отправить .env.prod LiveKit на сервер
-	scp -P $(PORT) livekit/.env.prod $(HOST):livekit/.env
+	scp -P $(PORT) livekit/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/livekit/.env
 
 deploy-mariadb: ## Отправить .env.prod MariaDB на сервер
-	scp -P $(PORT) mariadb/.env.prod $(HOST):mariadb/.env
+	scp -P $(PORT) mariadb/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/mariadb/.env
 
 deploy-nginx: ## Отправить .env.prod Nginx на сервер
-	scp -P $(PORT) nginx/.env.prod $(HOST):nginx/.env
+	scp -P $(PORT) nginx/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/nginx/.env
 
 deploy-portainer: ## Отправить .env.prod Portainer на сервер
-	scp -P $(PORT) portainer/.env.prod $(HOST):portainer/.env
+	scp -P $(PORT) portainer/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/portainer/.env
 
 deploy-rabbitmq: ## Отправить .env.prod RabbitMQ на сервер
-	scp -P $(PORT) rabbitmq/.env.prod $(HOST):rabbitmq/.env
+	scp -P $(PORT) rabbitmq/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rabbitmq/.env
 
 deploy-redis: ## Отправить .env.prod Redis на сервер
-	scp -P $(PORT) redis/.env.prod $(HOST):redis/.env
+	scp -P $(PORT) redis/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/redis/.env
 
 deploy-registry: ## Отправить .env.prod Registry на сервер
-	scp -P $(PORT) registry/.env.prod $(HOST):registry/.env
+	scp -P $(PORT) registry/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/registry/.env
 
 deploy-rustfs: ## Отправить .env.prod RustFS на сервер
-	scp -P $(PORT) rustfs/.env.prod $(HOST):rustfs/.env
+	scp -P $(PORT) rustfs/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rustfs/.env
 
 ##@ Rclone
 rclone-install: ## Установить rclone на сервер
@@ -87,8 +93,8 @@ rclone-config: ## Настроить подключение к Яндекс Ди
 rclone-test: ## Проверить подключение к Яндекс Диску
 	rclone ls yadisk:test-connect/
 
-rclone-backup-s3: ## Создать бекап FOLDER=/folderName на Яндекс Диск в BACKUP_NAME=name
-	rclone copy $(FOLDER) yadisk:backup/$(BACKUP_NAME)
+rclone-backup: ## Создать бекап PATH_TO_FILE=/home/form.sql на Яндекс Диск в BACKUP_DIR=database
+	rclone copy $(PATH_TO_FILE) yadisk:backup/$(BACKUP_DIR)
 
 ##@ Архиватор
 archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName
