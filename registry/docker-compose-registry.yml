@@ -6,7 +6,7 @@ services:
     container_name: registry-container
     restart: unless-stopped
     volumes:
-      - volume-name:/var/lib/registry
+      - ${VOLUME}:/var/lib/registry
       - ./auth:/auth:ro
     environment:
       REGISTRY_AUTH: htpasswd
@@ -29,10 +29,6 @@ services:
       - registry
     networks:
       - network-name
-
-volumes:
-  volume-name:
-    name: ${VOLUME}
 
 networks:
   network-name:
