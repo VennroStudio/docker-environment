@@ -6,7 +6,7 @@ export
 COMPOSE_FILE ?= docker-compose-rclone.yml
 MAKE_BIN ?= $(shell command -v make)
 
-.PHONY: help env init config archive backup deploy
+.PHONY: help env init config archive archive-prune backup deploy
 .PHONY: cron-install cron-list cron-remove
 .PHONY: docker-pull logs ps compose-config
 
@@ -36,7 +36,10 @@ archive: env ## Создать архив storage
 	@mkdir -p ../storage/archives
 	tar --exclude='./archives' --exclude='./.gitignore' --exclude='*/.gitkeep' -czvf "../storage/archives/$(ARCHIVE_NAME)-$$(date +%Y-%m-%d_%H-%M-%S).tar.gz" -C ../storage .
 
-backup: archive ## Создать архив и отправить его на удалённое хранилище
+archive-prune: env ## Оставить только последние ARCHIVE_KEEP архивов
+	@ls -1t ../storage/archives/$(ARCHIVE_NAME)-*.tar.gz 2>/dev/null | tail -n +$$(($(ARCHIVE_KEEP) + 1)) | xargs -r rm --
+
+backup: archive archive-prune ## Создать архив и отправить его на удалённое хранилище
 	docker compose -f $(COMPOSE_FILE) run --rm rclone copy /storage/archives $(RCLONE_REMOTE) --progress
 
 deploy: ## Отправить готовый rclone.conf на сервер
