@@ -1,9 +1,9 @@
 name: ${PROJECT_NAME}
 
 services:
-  db-backup:
+  tiredofit:
     image: tiredofit/db-backup:latest
-    container_name: nfrastack-container
+    container_name: tiredofit-container
     restart: unless-stopped
     env_file:
       - .env
