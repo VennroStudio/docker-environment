@@ -1,0 +1,6 @@
+*
+!.gitignore
+!backups/
+!backups/.gitkeep
+!backups/mariadb/
+!backups/mariadb/.gitkeep

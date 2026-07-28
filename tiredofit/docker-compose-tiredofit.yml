@@ -1,0 +1,19 @@
+name: ${PROJECT_NAME}
+
+services:
+  db-backup:
+    image: tiredofit/db-backup:latest
+    container_name: nfrastack-container
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ../storage/backups/mariadb:/backup
+      - ./logs:/logs
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true

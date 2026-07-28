@@ -1,0 +1,6 @@
+.env
+.env.prod
+.DS_Store
+
+config/*
+!config/.gitkeep
