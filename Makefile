@@ -1,9 +1,9 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs tiredofit
+.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
-.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-tiredofit deploy-rclone
+.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone
 .PHONY: archive unarchive clear-mac-copy hosts push
 
 ##@ Помощь
@@ -34,6 +34,9 @@ livekit: ## Инициализировать LiveKit
 mariadb: ## Инициализировать MariaDB
 	$(MAKE) -C mariadb init
 
+postgres: ## Инициализировать PostgreSQL
+	$(MAKE) -C postgres init
+
 nginx: ## Инициализировать Nginx
 	$(MAKE) -C nginx init
 
@@ -52,12 +55,15 @@ registry: ## Инициализировать Registry
 rustfs: ## Инициализировать RustFS
 	$(MAKE) -C rustfs init
 
+glitchtip: ## Инициализировать GlitchTip
+	$(MAKE) -C glitchtip init
+
 tiredofit: ## Инициализировать TiredOfIt DB Backup
 	$(MAKE) -C tiredofit init
 
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
 
 deploy-centrifugo: ## Отправить .env.prod Centrifugo на сервер
 	scp -P $(PORT) centrifugo/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/centrifugo/.env
@@ -85,6 +91,12 @@ deploy-registry: ## Отправить .env.prod Registry на сервер
 
 deploy-rustfs: ## Отправить .env.prod RustFS на сервер
 	scp -P $(PORT) rustfs/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rustfs/.env
+
+deploy-postgres: ## Отправить .env.prod PostgreSQL на сервер
+	scp -P $(PORT) postgres/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/postgres/.env
+
+deploy-glitchtip: ## Отправить .env.prod GlitchTip на сервер
+	scp -P $(PORT) glitchtip/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/glitchtip/.env
 
 deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
 	scp -P $(PORT) tiredofit/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/tiredofit/.env

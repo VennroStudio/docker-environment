@@ -25,14 +25,6 @@ make init
 | `MARIADB_VERSION`      | Версия образа MariaDB (например, `11`)                             |
 | `MYSQL_ROOT_PASSWORD`  | Пароль root-пользователя MariaDB                                   |
 
-⚠️ Порты наружу не пробрасываются — доступ идёт через внешнюю Docker-сеть, указанную в `NETWORK`.
-- **phpMyAdmin (веб-панель)** — HTTP-интерфейс, доступ через nginx proxy manager: хост `a-mariadb-container`, порт `80`.
-- **MariaDB** — приложения-клиенты в этой же Docker-сети подключаются напрямую по `mariadb-container:3306`. Если клиент снаружи (другой сервер, локальный DBeaver и т.п.) — добавь в `docker-compose-mariadb.yml`:
-```yaml
-ports:
-  - "3306:3306"
-```
-
 ## Конфиги
 
 - `config.cnf` — конфиг MariaDB, монтируется в `/etc/mysql/conf.d/config.cnf`

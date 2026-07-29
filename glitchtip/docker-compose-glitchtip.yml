@@ -1,0 +1,39 @@
+name: ${PROJECT_NAME}
+
+services:
+  glitchtip:
+    image: glitchtip/glitchtip:${GLITCHTIP_VERSION}
+    container_name: glitchtip-container
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      VALKEY_URL: ${VALKEY_URL}
+      SECRET_KEY: ${SECRET_KEY}
+      EMAIL_URL: ${EMAIL_URL}
+      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      GLITCHTIP_DOMAIN: ${GLITCHTIP_DOMAIN}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      ENABLE_USER_REGISTRATION: "${ENABLE_USER_REGISTRATION}"
+      ENABLE_ORGANIZATION_CREATION: "${ENABLE_ORGANIZATION_CREATION}"
+      ENABLE_ADMIN: "${ENABLE_ADMIN}"
+      ENABLE_OPENAPI: "${ENABLE_OPENAPI}"
+      GLITCHTIP_ENABLE_UPTIME: "${GLITCHTIP_ENABLE_UPTIME}"
+      GLITCHTIP_ENABLE_LOGS: "${GLITCHTIP_ENABLE_LOGS}"
+      GLITCHTIP_ENABLE_MCP: "${GLITCHTIP_ENABLE_MCP}"
+      GLITCHTIP_ENABLE_DUCKDB: "${GLITCHTIP_ENABLE_DUCKDB}"
+      GLITCHTIP_RETENTION_DAYS: ${GLITCHTIP_RETENTION_DAYS}
+      SERVER_ROLE: ${SERVER_ROLE}
+    volumes:
+      - uploads-volume:/code/uploads
+    networks:
+      - network-name
+
+volumes:
+  uploads-volume:
+    name: ${UPLOADS_VOLUME}
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true

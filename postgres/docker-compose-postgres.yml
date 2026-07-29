@@ -1,0 +1,24 @@
+name: ${PROJECT_NAME}
+
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    container_name: postgres-container
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - volume-name:/var/lib/postgresql/data
+    networks:
+      - network-name
+
+volumes:
+  volume-name:
+    name: ${VOLUME}
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
