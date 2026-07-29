@@ -118,6 +118,14 @@ clear-mac-copy: ## Очистка файлов MAC в архиве
 hosts: ## Добавить локальный домен
 	sudo nano /etc/hosts
 
+##@ hex
+
+hex-32: ## Сгенерировать случайную строку из 32 символов
+	openssl rand -hex 32
+
+hex-64: ## Сгенерировать случайную строку из 64 символов
+	openssl rand -hex 64
+
 ##@ Git
 push: ## Auto save
 	git add .
