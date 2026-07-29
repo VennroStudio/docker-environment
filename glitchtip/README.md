@@ -35,7 +35,7 @@ make init
 | `PROJECT_NAME` | Название проекта Docker Compose |
 | `NETWORK` | Имя внешней Docker-сети, к которой подключается контейнер |
 | `GLITCHTIP_VERSION` | Версия образа GlitchTip |
-| `UPLOADS_VOLUME` | Имя Docker volume для файлов GlitchTip |
+| `VOLUME` | Имя Docker volume для файлов GlitchTip |
 | `DATABASE_URL` | Подключение к PostgreSQL |
 | `VALKEY_URL` | Подключение к Redis/Valkey |
 | `SECRET_KEY` | Секретный ключ GlitchTip |

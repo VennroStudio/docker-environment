@@ -25,13 +25,13 @@ services:
       GLITCHTIP_RETENTION_DAYS: ${GLITCHTIP_RETENTION_DAYS}
       SERVER_ROLE: ${SERVER_ROLE}
     volumes:
-      - uploads-volume:/code/uploads
+      - volume-name:/code/uploads
     networks:
       - network-name
 
 volumes:
-  uploads-volume:
-    name: ${UPLOADS_VOLUME}
+  volume-name:
+    name: ${VOLUME}
 
 networks:
   network-name:
