@@ -14,10 +14,10 @@ services:
     networks:
       - network-name
 
-  a-mariadb:
+  pma:
     image: phpmyadmin/phpmyadmin
     platform: linux/amd64
-    container_name: a-mariadb-container
+    container_name: pma-container
     restart: unless-stopped
     environment:
       - PMA_HOST=mariadb-container
