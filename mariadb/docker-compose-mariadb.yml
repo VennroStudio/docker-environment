@@ -5,6 +5,8 @@ services:
     image: mariadb:${MARIADB_VERSION}
     container_name: mariadb-container
     restart: unless-stopped
+    ports:
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_ROOT_HOST: '%'
