@@ -1,6 +1,6 @@
 # PostgreSQL
 
-PostgreSQL в Docker.
+PostgreSQL с pgAdmin в Docker.
 
 ## Быстрый старт
 
@@ -11,7 +11,7 @@ make init
 Команда:
 - создаст `.env` из `.env.example` (если его ещё нет),
 - создаст внешнюю Docker-сеть (если её ещё нет),
-- скачает образ и поднимет контейнер.
+- скачает образы и поднимет контейнеры.
 
 ## Настройка `.env`
 
@@ -26,12 +26,27 @@ make init
 | `POSTGRES_DB` | База, которая создаётся при первом запуске |
 | `POSTGRES_USER` | Пользователь, который создаётся при первом запуске |
 | `POSTGRES_PASSWORD` | Пароль пользователя |
+| `PGADMIN_EMAIL` | Логин для pgAdmin |
+| `PGADMIN_PASSWORD` | Пароль для pgAdmin |
+| `PGADMIN_PORT` | Порт pgAdmin на хосте |
 
 Доступ внутри Docker-сети:
 - **Host:** `postgres-container`
 - **Port:** `5432`
 
-Порты наружу не пробрасываются.
+pgAdmin:
+- **URL:** `http://localhost:5050`
+- **Email:** значение `PGADMIN_EMAIL`
+- **Password:** значение `PGADMIN_PASSWORD`
+
+Подключение PostgreSQL в pgAdmin:
+- **Host:** `postgres-container`
+- **Port:** `5432`
+- **Database:** значение `POSTGRES_DB`
+- **Username:** значение `POSTGRES_USER`
+- **Password:** значение `POSTGRES_PASSWORD`
+
+PostgreSQL наружу не пробрасывается.
 
 ## Команды Makefile
 
@@ -40,10 +55,10 @@ make init
 | Команда | Действие |
 |---|---|
 | `make init` | Первичная инициализация: `.env` + сеть + pull + up |
-| `make up` | Поднять контейнер |
-| `make down` | Остановить и удалить контейнер |
-| `make restart` | Перезапустить контейнер |
-| `make logs` | Логи контейнера (последние 100 строк, live) |
-| `make ps` | Показать статус контейнера |
+| `make up` | Поднять контейнеры |
+| `make down` | Остановить и удалить контейнеры |
+| `make restart` | Перезапустить контейнеры |
+| `make logs` | Логи контейнеров (последние 100 строк, live) |
+| `make ps` | Показать статус контейнеров |
 | `make volume-inspect` | Показать информацию о хранилище |
 | `make volume-rm` | Удалить хранилище вручную (полная потеря данных) |
