@@ -46,7 +46,14 @@ make init
 | `CSRF_TRUSTED_ORIGINS` | Разрешённые origins для CSRF |
 | `ENABLE_USER_REGISTRATION` | Разрешить регистрацию пользователей |
 | `ENABLE_ORGANIZATION_CREATION` | Разрешить создание организаций |
+| `ENABLE_ADMIN` | Включить стандартную Django admin-панель |
+| `ENABLE_OPENAPI` | Включить OpenAPI-схему |
+| `GLITCHTIP_ENABLE_UPTIME` | Включить uptime monitoring |
+| `GLITCHTIP_ENABLE_LOGS` | Включить logs |
+| `GLITCHTIP_ENABLE_MCP` | Включить MCP |
+| `GLITCHTIP_ENABLE_DUCKDB` | Включить DuckDB |
 | `GLITCHTIP_RETENTION_DAYS` | Сколько дней хранить данные |
+| `SERVER_ROLE` | Роль контейнера, для одного сервера используется `all_in_one` |
 
 Доступ для nginx proxy manager:
 - **Host:** `glitchtip-container`
