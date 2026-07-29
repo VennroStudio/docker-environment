@@ -57,6 +57,23 @@ make backup
 make backup-job JOB=01
 ```
 
+## Восстановление
+
+Интерактивное восстановление:
+
+```bash
+make restore
+```
+
+Восстановить конкретный файл:
+
+```bash
+make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database
+```
+
+`FILE` — путь внутри контейнера, обычно `/backup/...`.
+`JOB` — номер блока переменных `DB01`, `DB02`, `DB03` и т.д.
+
 ## Команды Makefile
 
 Полный список — `make help`.
@@ -69,6 +86,8 @@ make backup-job JOB=01
 | `make restart` | Перезапустить backup-контейнер |
 | `make backup` | Запустить все backup jobs прямо сейчас |
 | `make backup-job JOB=01` | Запустить один backup job |
+| `make restore` | Интерактивно восстановить базу |
+| `make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database` | Восстановить конкретный файл |
 | `make logs` | Логи контейнера (последние 100 строк, live) |
 | `make ps` | Показать статус контейнера |
 | `make config` | Показать итоговый compose-конфиг |

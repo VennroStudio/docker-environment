@@ -6,7 +6,7 @@ COMPOSE_FILE ?= docker-compose-tiredofit.yml
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
-.PHONY: backup backup-job
+.PHONY: backup backup-job restore restore-file
 
 ##@ Помощь
 
@@ -52,6 +52,15 @@ backup: up ## Запустить все backup jobs прямо сейчас
 backup-job: up ## Запустить один job: make backup-job JOB=01
 	@[ -n "$(JOB)" ] || (echo "JOB is required, example: make backup-job JOB=01" >&2; exit 1)
 	docker compose -f $(COMPOSE_FILE) exec tiredofit backup$(JOB)-now
+
+restore: up ## Интерактивно восстановить базу из backup-файла
+	docker compose -f $(COMPOSE_FILE) exec tiredofit restore
+
+restore-file: up ## Восстановить файл: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database
+	@[ -n "$(JOB)" ] || (echo "JOB is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
+	@[ -n "$(FILE)" ] || (echo "FILE is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
+	@[ -n "$(DB_NAME)" ] || (echo "DB_NAME is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
+	docker compose -f $(COMPOSE_FILE) exec tiredofit restore "$(FILE)" "$(DB$(JOB)_TYPE)" "$(DB$(JOB)_HOST)" "$(DB_NAME)" "$(DB$(JOB)_USER)" "$(DB$(JOB)_PASS)" "$(DB$(JOB)_PORT)"
 
 ##@ Логи
 
