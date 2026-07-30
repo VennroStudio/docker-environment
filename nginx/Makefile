@@ -51,6 +51,15 @@ logs: ## Показать логи (последние 100)
 ps: ## Показать статус контейнера
 	docker compose -f $(COMPOSE_FILE) ps
 
+##@ Сертификат
+
+cert: ## Добавить сертификат для локального домена NAME=pma ; DOMAIN=pma.local
+	mkdir -p certs
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+    -keyout ./certs/$(NAME).key \
+    -out ./certs/$(NAME).crt \
+    -subj "/CN=$(DOMAIN)"
+
 ##@ Проверка
 
 config: ## Показать итоговый конфиг
