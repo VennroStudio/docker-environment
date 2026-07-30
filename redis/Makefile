@@ -4,7 +4,7 @@ export
 
 COMPOSE_FILE ?= docker-compose-redis.yml
 
-.PHONY: help env network init up down restart
+.PHONY: help env acl network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: volume-inspect volume-rm
 
@@ -23,6 +23,14 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
+acl: env ## Сгенерировать users.acl из .env
+	@if [ "$$REDIS_USER" = "default" ]; then \
+		printf 'user default on >%s ~* &* +@all\n' "$$REDIS_PASSWORD" > users.acl; \
+	else \
+		printf 'user %s on >%s ~* &* +@all\nuser default off\n' "$$REDIS_USER" "$$REDIS_PASSWORD" > users.acl; \
+	fi
+	@chmod 600 users.acl
+
 ##@ Сеть
 
 network: env ## Создать внешнюю сеть, если она ещё не существует
@@ -30,8 +38,8 @@ network: env ## Создать внешнюю сеть, если она ещё �
 
 ##@ Redis
 
-init: env network docker-pull docker-up ## Инициализировать проект
-up: network docker-up ## Поднять контейнеры
+init: env acl network docker-pull docker-up ## Инициализировать проект
+up: acl network docker-up ## Поднять контейнеры
 down: docker-down ## Остановить и удалить контейнеры
 restart: down up ## Перезапустить контейнеры
 

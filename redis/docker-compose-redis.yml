@@ -5,9 +5,10 @@ services:
     image: redis:7-alpine
     container_name: redis-container
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server --aclfile /usr/local/etc/redis/users.acl
     volumes:
       - volume-name:/data
+      - ./users.acl:/usr/local/etc/redis/users.acl:ro
     networks:
       - network-name
 
