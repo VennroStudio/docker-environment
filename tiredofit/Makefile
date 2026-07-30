@@ -56,11 +56,10 @@ backup-job: up ## Запустить один job: make backup-job JOB=01
 restore: up ## Интерактивно восстановить базу из backup-файла
 	docker compose -f $(COMPOSE_FILE) exec tiredofit restore
 
-restore-file: up ## Восстановить файл: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database
-	@[ -n "$(JOB)" ] || (echo "JOB is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
-	@[ -n "$(FILE)" ] || (echo "FILE is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
-	@[ -n "$(DB_NAME)" ] || (echo "DB_NAME is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz DB_NAME=database" >&2; exit 1)
-	docker compose -f $(COMPOSE_FILE) exec tiredofit restore "$(FILE)" "$(DB$(JOB)_TYPE)" "$(DB$(JOB)_HOST)" "$(DB_NAME)" "$(DB$(JOB)_USER)" "$(DB$(JOB)_PASS)" "$(DB$(JOB)_PORT)"
+restore-file: up ## Восстановить файл: make restore-file JOB=01 FILE=/backup/file.sql.gz
+	@[ -n "$(JOB)" ] || (echo "JOB is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz" >&2; exit 1)
+	@[ -n "$(FILE)" ] || (echo "FILE is required, example: make restore-file JOB=01 FILE=/backup/file.sql.gz" >&2; exit 1)
+	docker compose -f $(COMPOSE_FILE) exec tiredofit restore "$(FILE)" "$(DB$(JOB)_TYPE)" "$(DB$(JOB)_HOST)" "$(DB$(JOB)_NAME)" "$(DB$(JOB)_USER)" "$(DB$(JOB)_PASS)" "$(DB$(JOB)_PORT)"
 
 ##@ Логи
 
