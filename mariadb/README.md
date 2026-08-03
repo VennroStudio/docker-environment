@@ -22,6 +22,8 @@ make init
 | `PROJECT_NAME`         | Название проекта (влияет на префикс контейнеров в Docker)          |
 | `NETWORK`              | Имя внешней Docker-сети, к которой подключаются контейнеры         |
 | `VOLUME`               | Имя Docker volume для хранения данных MariaDB                      |
+| `MARIADB_PORT`         | Локальный порт хоста для подключения к MariaDB                     |
+| `PMA_PORT`             | Локальный порт хоста для phpMyAdmin                                |
 | `MARIADB_VERSION`      | Версия образа MariaDB (например, `11`)                             |
 | `MYSQL_ROOT_PASSWORD`  | Пароль root-пользователя MariaDB                                   |
 

@@ -5,6 +5,8 @@ services:
     image: glitchtip/glitchtip:${GLITCHTIP_VERSION}
     container_name: glitchtip-container
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${GLITCHTIP_PORT}:8000"
     environment:
       DATABASE_URL: ${DATABASE_URL}
       VALKEY_URL: ${VALKEY_URL}

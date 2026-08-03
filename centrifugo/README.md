@@ -21,26 +21,12 @@ make init
 |--------------------------------|---------------------------------------------------------------------------|
 | `PROJECT_NAME`                | Название проекта (влияет на префикс контейнеров в Docker)                |
 | `NETWORK`                     | Имя внешней Docker-сети, к которой подключается контейнер                |
-| `PORT`                        | Локальный порт хоста для админ-панели и internal endpoints Centrifugo    |
+| `CENTRIFUGO_PORT`                        | Локальный порт хоста для админ-панели и internal endpoints Centrifugo    |
 | `CENTRIFUGO_HMAC_SECRET_KEY`  | Секрет для подписи JWT-токенов клиентских подключений                    |
 | `CENTRIFUGO_ADMIN_PASSWORD`   | Пароль для входа в админ-панель Centrifugo                               |
 | `CENTRIFUGO_ADMIN_SECRET`     | Секрет для JWT-сессии админ-панели                                       |
 | `CENTRIFUGO_HTTP_API_KEY`     | Ключ для HTTP API (используется бэкендом для публикации в каналы)        |
 | `CENTRIFUGO_ALLOWED_ORIGINS`  | Домен, с которого разрешены WebSocket-подключения (CORS)                 |
-
-Админ-панель и internal endpoints Centrifugo доступны только с хоста:
-
-```bash
-http://localhost:${PORT}
-```
-
-Для backend-контейнеров в той же Docker-сети HTTP API доступен по адресу:
-
-```bash
-http://centrifugo-container:9000/api
-```
-
-⚠️ Наружу пробрасывается только `127.0.0.1:${PORT}` — доступ к контейнеру из других контейнеров идёт через внешнюю Docker-сеть, указанную в `NETWORK`.
 
 ⚠️ В настройках прокси-хоста (NPM) обязательно включите тумблер **«Поддержка WebSocket»** — без него клиенты не смогут подключиться.
 

@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     command: centrifugo -c config.json
     ports:
-      - "127.0.0.1:${PORT}:9000"
+      - "127.0.0.1:${CENTRIFUGO_PORT}:9000"
     volumes:
       - ./config.json:/centrifugo/config.json:ro
     environment:

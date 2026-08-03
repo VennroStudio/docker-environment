@@ -36,6 +36,7 @@ make init
 | `NETWORK` | Имя внешней Docker-сети, к которой подключается контейнер |
 | `GLITCHTIP_VERSION` | Версия образа GlitchTip |
 | `VOLUME` | Имя Docker volume для файлов GlitchTip |
+| `GLITCHTIP_PORT` | Локальный порт хоста для доступа к GlitchTip |
 | `DATABASE_URL` | Подключение к PostgreSQL |
 | `VALKEY_URL` | Подключение к Redis/Valkey |
 | `SECRET_KEY` | Секретный ключ GlitchTip |
@@ -59,7 +60,13 @@ make init
 - **Host:** `glitchtip-container`
 - **Port:** `8000`
 
-Порты наружу не пробрасываются.
+GlitchTip доступен только с хоста:
+
+```bash
+http://localhost:${GLITCHTIP_PORT}
+```
+
+Наружу пробрасывается только `127.0.0.1:${GLITCHTIP_PORT}`.
 
 ## Команды Makefile
 
