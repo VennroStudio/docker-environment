@@ -6,6 +6,8 @@ services:
     container_name: centrifugo-container
     restart: unless-stopped
     command: centrifugo -c config.json
+    ports:
+      - "127.0.0.1:${PORT}:9000"
     volumes:
       - ./config.json:/centrifugo/config.json:ro
     environment:
@@ -15,6 +17,7 @@ services:
       CENTRIFUGO_ADMIN_PASSWORD: ${CENTRIFUGO_ADMIN_PASSWORD}
       CENTRIFUGO_ADMIN_SECRET: ${CENTRIFUGO_ADMIN_SECRET}
       CENTRIFUGO_HTTP_API_KEY: ${CENTRIFUGO_HTTP_API_KEY}
+      CENTRIFUGO_HTTP_SERVER_INTERNAL_PORT: "9000"
     ulimits:
       nofile:
         soft: 65535
