@@ -56,18 +56,6 @@ make init
 | `GLITCHTIP_RETENTION_DAYS` | Сколько дней хранить данные |
 | `SERVER_ROLE` | Роль контейнера, для одного сервера используется `all_in_one` |
 
-Доступ для nginx proxy manager:
-- **Host:** `glitchtip-container`
-- **Port:** `8000`
-
-GlitchTip доступен только с хоста:
-
-```bash
-http://localhost:${GLITCHTIP_PORT}
-```
-
-Наружу пробрасывается только `127.0.0.1:${GLITCHTIP_PORT}`.
-
 ## Команды Makefile
 
 Полный список — `make help`.

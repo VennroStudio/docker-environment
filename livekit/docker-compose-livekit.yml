@@ -11,6 +11,7 @@ services:
     environment:
       LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
     ports:
+      - "127.0.0.1:${LIVEKIT_PORT}:7880"
       - "7881:7881/tcp"
       - "50000-60000:50000-60000/udp"
     networks:
