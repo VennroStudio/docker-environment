@@ -5,6 +5,8 @@ services:
     image: portainer/portainer-ce:latest
     container_name: portainer-container
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${PORTAINER_PORT}:9000"
     volumes:
       - volume-name:/data
       - /var/run/docker.sock:/var/run/docker.sock

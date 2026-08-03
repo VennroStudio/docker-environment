@@ -28,6 +28,8 @@ make init
 | `PROJECT_NAME`                     | Название проекта Docker Compose                                   |
 | `NETWORK`                          | Имя внешней Docker-сети, к которой подключаются контейнеры        |
 | `VOLUME`                           | Путь к папке для хранения образов, например `./project-volume`    |
+| `REGISTRY_PORT`                    | Локальный порт хоста для Docker Registry API                      |
+| `A_REGISTRY_PORT`                  | Локальный порт хоста для веб-интерфейса `a-registry`              |
 | `AUTH_PATH`                        | Путь к файлу `htpasswd` (по умолчанию `auth/htpasswd`)             |
 | `REGISTRY_USER`                    | Логин для доступа к Registry                                      |
 | `REGISTRY_PASSWORD`                | Пароль для доступа к Registry                                     |
@@ -36,12 +38,6 @@ make init
 | `A_REGISTRY_TITLE`                 | Заголовок в веб-интерфейсе `a-registry`                           |
 | `A_REGISTRY_AUTH`                  | `true`/`false` — включить авторизацию в веб-интерфейсе             |
 | `A_REGISTRY_DELETE_IMAGES`         | `true`/`false` — разрешить удаление образов из веб-интерфейса      |
-
-⚠️ Порты наружу не пробрасываются — доступ к контейнеру идёт через внешнюю Docker-сеть, указанную в `NETWORK`. Для внешнего доступа добавьте:
-```yaml
-ports:
-  - "5000:5000"
-```
 
 ## Команды Makefile
 

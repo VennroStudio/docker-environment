@@ -22,16 +22,10 @@ make init
 | `PROJECT_NAME`      | Название проекта (влияет на префикс контейнеров в Docker)          |
 | `NETWORK`           | Имя внешней Docker-сети, к которой подключаются контейнеры         |
 | `VOLUME`            | Имя Docker volume для хранения данных Redis                        |
+| `REDIS_PORT`        | Локальный порт хоста для Redis                                     |
+| `REDIS_INSIGHT_PORT` | Локальный порт хоста для RedisInsight                             |
 | `REDIS_USER`        | Имя пользователя Redis                                             |
 | `REDIS_PASSWORD`    | Пароль для подключения к Redis                                     |
-
-⚠️ Порты наружу не пробрасываются — доступ идёт через внешнюю Docker-сеть, указанную в `NETWORK`.
-- **RedisInsight (веб-панель)** — HTTP-интерфейс, доступ через nginx proxy manager: хост `a-redis-container`, порт `5540`.
-- **Redis** — приложения-клиенты в этой же Docker-сети подключаются напрямую по `redis-container:6379` с пользователем `REDIS_USER` и паролем `REDIS_PASSWORD`. Если клиент снаружи (другой сервер) — добавь в `docker-compose-redis.yml`:
-```yaml
-ports:
-  - "6379:6379"
-```
 
 ## Подключение через RedisInsight
 

@@ -4,6 +4,9 @@ services:
   rustfs:
     image: rustfs/rustfs:latest
     container_name: rustfs-container
+    ports:
+      - "127.0.0.1:${RUSTFS_API_PORT}:9000"
+      - "127.0.0.1:${RUSTFS_CONSOLE_PORT}:9001"
     volumes:
       - ${VOLUME}:/data
     environment:

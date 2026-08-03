@@ -5,6 +5,9 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq-container
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${RABBITMQ_PORT}:5672"
+      - "127.0.0.1:${RABBITMQ_MANAGEMENT_PORT}:15672"
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}

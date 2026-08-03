@@ -6,6 +6,8 @@ services:
     container_name: redis-container
     restart: unless-stopped
     command: redis-server --aclfile /usr/local/etc/redis/users.acl
+    ports:
+      - "127.0.0.1:${REDIS_PORT}:6379"
     volumes:
       - volume-name:/data
       - ./users.acl:/usr/local/etc/redis/users.acl:ro
@@ -16,6 +18,8 @@ services:
     image: redis/redisinsight:latest
     container_name: a-redis-container
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REDIS_INSIGHT_PORT}:5540"
     networks:
       - network-name
 
