@@ -34,6 +34,8 @@ make init
 
 Структура каналов (namespaces, поведение presence/join-leave и т.д.) задаётся в `config.json`.
 
+Namespace `photo` используется backend-ом для realtime-событий Photo API в каналах вида `$photo:{photoId}`.
+
 ## Команды Makefile
 
 Полный список — `make help`.

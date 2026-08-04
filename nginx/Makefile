@@ -60,6 +60,13 @@ cert: ## Добавить сертификат для локального до�
     -out ./certs/$(NAME).crt \
     -subj "/CN=$(DOMAIN)"
 
+mkcert-install:
+	brew install mkcert
+
+mkcert:
+	mkcert -install
+	mkcert $(DOMAIN)
+
 ##@ Проверка
 
 config: ## Показать итоговый конфиг
