@@ -53,19 +53,24 @@ ps: ## Показать статус контейнера
 
 ##@ Сертификат
 
-cert: ## Добавить сертификат для локального домена NAME=pma ; DOMAIN=pma.local
+cert: ## Добавить сертификат для локального домена make mkcert NAME=domain-name DOMAIN=domain.local
 	mkdir -p certs
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout ./certs/$(NAME).key \
     -out ./certs/$(NAME).crt \
     -subj "/CN=$(DOMAIN)"
 
-mkcert-install:
+mkcert-brew:
 	brew install mkcert
 
-mkcert:
-	mkcert -install
-	mkcert $(DOMAIN)
+mkcert-install:
+	mkcert --install
+
+mkcert: ## Добавить сертификат для локального домена make mkcert NAME=domain-name DOMAIN=domain.local 'WILDCARD=*.domain.local'
+	mkcert \
+      -cert-file certs/$(NAME).pem \
+      -key-file certs/$(NAME)-key.pem \
+      $(DOMAIN) '$(WILDCARD)'
 
 ##@ Проверка
 
