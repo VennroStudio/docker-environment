@@ -1,0 +1,25 @@
+name: ${PROJECT_NAME}
+
+services:
+  vpn:
+    image: hwdsl2/ipsec-vpn-server:latest
+    container_name: vpn-container
+    restart: unless-stopped
+    privileged: true
+    environment:
+      VPN_IPSEC_PSK: ${VPN_IPSEC_PSK}
+      VPN_USER: ${VPN_USER}
+      VPN_PASSWORD: ${VPN_PASSWORD}
+    ports:
+      - "500:500/udp"
+      - "4500:4500/udp"
+    volumes:
+      - ./data:/etc/ipsec.d
+      - /lib/modules:/lib/modules:ro
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
