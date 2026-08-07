@@ -123,6 +123,9 @@ hosts: ## Добавить локальный домен
 tunnel: ## Открыть SSH-туннели к серверу
 	ssh -N -p $(PORT) $(foreach TUNNEL,$(TUNNELS),-L $(TUNNEL)) $(HOST)
 
+tunnel-vpn: ## Открыть SSH-туннели к серверу VPN
+	ssh -N -p $(VPN_PORT) $(foreach VPN_TUNNEL,$(VPN_TUNNELS),-L $(VPN_TUNNEL)) $(VPN_HOST)
+
 ##@ hex
 
 hex-32: ## Сгенерировать случайную строку из 32 символов
