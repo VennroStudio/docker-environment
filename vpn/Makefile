@@ -2,13 +2,18 @@ include .env.example
 -include .env
 export
 
-COMPOSE_FILE ?= docker-compose-vpn.yml
+COMPOSE_FILE ?= docker-compose-ipsec.yml
+IPSEC_COMPOSE_FILE ?= docker-compose-ipsec.yml
+OPENVPN_COMPOSE_FILE ?= docker-compose-o-vpn.yml
 VPN_CONTAINER ?= vpn-container
+OPENVPN_CONTAINER ?= o-vpn-container
 CLIENT_CONFIG_DIR ?= .
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
+.PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
+.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-password
 
 ##@ Помощь
 
@@ -30,12 +35,58 @@ env: ## Безопасно скопировать .env из example
 network: env ## Создать внешнюю сеть, если она ещё не существует
 	@docker network inspect $(NETWORK) >/dev/null 2>&1 || docker network create $(NETWORK)
 
-##@ VPN
+##@ IPsec
 
-init: env network docker-pull docker-up ## Инициализировать проект
-up: network docker-up ## Поднять контейнер
-down: docker-down ## Остановить и удалить контейнер
-restart: down up ## Перезапустить контейнер
+init: env network docker-pull docker-up ## Инициализировать IPsec
+up: network docker-up ## Поднять IPsec
+down: docker-down ## Остановить и удалить IPsec
+restart: down up ## Перезапустить IPsec
+
+ipsec: init ## Инициализировать IPsec
+ipsec-up: network ## Поднять IPsec
+	docker compose -f $(IPSEC_COMPOSE_FILE) up -d
+
+ipsec-down: ## Остановить и удалить IPsec
+	docker compose -f $(IPSEC_COMPOSE_FILE) down
+
+ipsec-restart: ipsec-down ipsec-up ## Перезапустить IPsec
+
+ipsec-logs: ## Показать логи IPsec
+	docker compose -f $(IPSEC_COMPOSE_FILE) logs -f --tail=100
+
+ipsec-ps: ## Показать статус IPsec
+	docker compose -f $(IPSEC_COMPOSE_FILE) ps
+
+ipsec-config: ## Показать итоговый IPsec config
+	docker compose -f $(IPSEC_COMPOSE_FILE) config
+
+##@ OpenVPN
+
+o-vpn: env network ## Инициализировать OpenVPN Access Server
+	docker compose -f $(OPENVPN_COMPOSE_FILE) pull
+	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+
+o-vpn-up: network ## Поднять OpenVPN Access Server
+	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+
+o-vpn-down: ## Остановить и удалить OpenVPN Access Server
+	docker compose -f $(OPENVPN_COMPOSE_FILE) down
+
+o-vpn-restart: o-vpn-down o-vpn-up ## Перезапустить OpenVPN Access Server
+
+o-vpn-logs: ## Показать логи OpenVPN Access Server
+	docker compose -f $(OPENVPN_COMPOSE_FILE) logs -f --tail=100
+
+o-vpn-ps: ## Показать статус OpenVPN Access Server
+	docker compose -f $(OPENVPN_COMPOSE_FILE) ps
+
+o-vpn-config: ## Показать итоговый OpenVPN config
+	docker compose -f $(OPENVPN_COMPOSE_FILE) config
+
+o-vpn-password: ## Задать пароль пользователю openvpn
+	@test -n "$(PASSWORD)" || (echo "Usage: make o-vpn-password PASSWORD='new-password'" && exit 1)
+	docker exec -it $(OPENVPN_CONTAINER) sacli --user "openvpn" --new_pass "$(PASSWORD)" SetLocalPassword
+	docker exec -it $(OPENVPN_CONTAINER) sacli start
 
 docker-up: ## Поднять контейнер
 	docker compose -f $(COMPOSE_FILE) up -d

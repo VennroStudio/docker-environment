@@ -1,11 +1,22 @@
 # VPN
 
-IPsec VPN-сервер в Docker-контейнере на образе `hwdsl2/ipsec-vpn-server`.
+Модуль с двумя VPN-вариантами:
+
+- IPsec/IKEv2 на образе `hwdsl2/ipsec-vpn-server`;
+- OpenVPN Access Server на образе `openvpn/openvpn-as`.
 
 ## Быстрый старт
 
+IPsec/IKEv2 запускается по умолчанию:
+
 ```bash
 make init
+```
+
+OpenVPN запускается отдельной командой:
+
+```bash
+make o-vpn
 ```
 
 Команда:
@@ -24,10 +35,14 @@ make init
 | `VPN_IPSEC_PSK`  | Pre-shared key для IPsec                                       |
 | `VPN_USER`       | Логин VPN-пользователя                                         |
 | `VPN_PASSWORD`   | Пароль VPN-пользователя                                        |
+| `OPENVPN_ADMIN_PORT` | Локальный порт хоста для web/admin UI OpenVPN              |
+| `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
+| `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
+| `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
 
-## Порты
+## IPsec/IKEv2
 
-VPN использует UDP-порты:
+IPsec/IKEv2 использует UDP-порты:
 
 | Порт | Протокол | Назначение |
 |---|---|---|
@@ -36,9 +51,41 @@ VPN использует UDP-порты:
 
 Эти порты должны быть открыты на сервере и у хостинг-провайдера. Через Nginx Proxy Manager их проксировать не нужно: это не HTTP/WebSocket-трафик.
 
+## OpenVPN
+
+OpenVPN Access Server использует:
+
+| Порт | Протокол | Назначение |
+|---|---|---|
+| `OPENVPN_ADMIN_PORT -> 943` | TCP | Web UI и admin UI |
+| `OPENVPN_TCP_PORT -> 443` | TCP | OpenVPN TCP |
+| `OPENVPN_UDP_PORT -> 1194` | UDP | OpenVPN UDP |
+
+Admin UI доступна на сервере:
+
+```text
+https://127.0.0.1:${OPENVPN_ADMIN_PORT}/admin
+```
+
+Пароль пользователю `openvpn` можно задать так:
+
+```bash
+make o-vpn-password PASSWORD='new-password'
+```
+
+Если нужен OpenVPN именно через TCP `443`, выставь:
+
+```env
+OPENVPN_TCP_PORT=443
+```
+
+Но на этой же машине порт `443` не должен быть занят Nginx Proxy Manager или другим контейнером. Через Nginx Proxy Manager OpenVPN-трафик проксировать не надо: это не обычный HTTP-сайт.
+
 ## Данные
 
-Данные контейнера хранятся в `./data`, который монтируется в `/etc/ipsec.d`.
+Данные IPsec хранятся в `./data`, который монтируется в `/etc/ipsec.d`.
+
+Данные OpenVPN хранятся в `OPENVPN_VOLUME`, по умолчанию `./openvpn-data`.
 
 ## Подключение на устройствах
 
@@ -78,14 +125,23 @@ make client-configs CLIENT_CONFIG_DIR=./client-configs
 
 | Команда | Действие |
 |---|---|
-| `make init` | Первичная инициализация: `.env` + сеть + pull + up |
-| `make up` | Поднять контейнер |
-| `make down` | Остановить и удалить контейнер |
-| `make restart` | Перезапустить контейнер |
-| `make logs` | Логи контейнера (последние 100 строк, live) |
-| `make ps` | Показать статус контейнера |
+| `make init` | Первичная инициализация IPsec: `.env` + сеть + pull + up |
+| `make up` | Поднять IPsec |
+| `make down` | Остановить и удалить IPsec |
+| `make restart` | Перезапустить IPsec |
+| `make logs` | Логи IPsec (последние 100 строк, live) |
+| `make ps` | Показать статус IPsec |
+| `make ipsec-config` | Показать итоговый IPsec Docker Compose config |
+| `make o-vpn` | Первичная инициализация OpenVPN Access Server |
+| `make o-vpn-up` | Поднять OpenVPN Access Server |
+| `make o-vpn-down` | Остановить и удалить OpenVPN Access Server |
+| `make o-vpn-restart` | Перезапустить OpenVPN Access Server |
+| `make o-vpn-logs` | Логи OpenVPN Access Server |
+| `make o-vpn-ps` | Показать статус OpenVPN Access Server |
+| `make o-vpn-password PASSWORD='new-password'` | Задать пароль пользователю `openvpn` |
+| `make o-vpn-config` | Показать итоговый OpenVPN Docker Compose config |
 | `make client-ios` | Скопировать `vpnclient.mobileconfig` для iOS и macOS |
 | `make client-android` | Скопировать `vpnclient.sswan` для Android |
 | `make client-windows-linux` | Скопировать `vpnclient.p12` для Windows и Linux |
 | `make client-configs` | Скопировать все клиентские конфиги |
-| `make config` | Показать итоговый Docker Compose config |
+| `make config` | Показать итоговый IPsec Docker Compose config |

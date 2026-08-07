@@ -1,0 +1,25 @@
+name: ${PROJECT_NAME}
+
+services:
+  o-vpn:
+    image: openvpn/openvpn-as:latest
+    container_name: o-vpn-container
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+      - MKNOD
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - "127.0.0.1:${OPENVPN_ADMIN_PORT}:943"
+      - "${OPENVPN_TCP_PORT}:443/tcp"
+      - "${OPENVPN_UDP_PORT}:1194/udp"
+    volumes:
+      - ${OPENVPN_VOLUME}:/openvpn
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
