@@ -4,7 +4,7 @@ export
 .PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone
-.PHONY: archive unarchive clear-mac-copy hosts tunnel hex-32 hex-64 push
+.PHONY: archive unarchive clear-mac-copy hosts tunnel tunnel-vpn hex-32 hex-64 push
 
 ##@ Помощь
 
