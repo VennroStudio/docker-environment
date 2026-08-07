@@ -13,7 +13,7 @@ CLIENT_CONFIG_DIR ?= .
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
 .PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
-.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-password
+.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-apply-config o-vpn-password
 
 ##@ Помощь
 
@@ -65,9 +65,11 @@ ipsec-config: ## Показать итоговый IPsec config
 o-vpn: env network ## Инициализировать OpenVPN Access Server
 	docker compose -f $(OPENVPN_COMPOSE_FILE) pull
 	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+	$(MAKE) --no-print-directory o-vpn-apply-config
 
 o-vpn-up: network ## Поднять OpenVPN Access Server
 	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+	$(MAKE) --no-print-directory o-vpn-apply-config
 
 o-vpn-down: ## Остановить и удалить OpenVPN Access Server
 	docker compose -f $(OPENVPN_COMPOSE_FILE) down
@@ -83,10 +85,19 @@ o-vpn-ps: ## Показать статус OpenVPN Access Server
 o-vpn-config: ## Показать итоговый OpenVPN config
 	docker compose -f $(OPENVPN_COMPOSE_FILE) config
 
+o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS для профилей, QR и ссылок
+	@test -n "$(OPENVPN_HOST)" || (echo "OPENVPN_HOST is required: set it to public server IP or DNS name" && exit 1)
+	@test -n "$(OPENVPN_TCP_PORT)" || (echo "OPENVPN_TCP_PORT is required" && exit 1)
+	@test -n "$(OPENVPN_UDP_PORT)" || (echo "OPENVPN_UDP_PORT is required" && exit 1)
+	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli start
+
 o-vpn-password: ## Задать пароль пользователю openvpn
 	@test -n "$(PASSWORD)" || (echo "Usage: make o-vpn-password PASSWORD='new-password'" && exit 1)
-	docker exec -it $(OPENVPN_CONTAINER) sacli --user "openvpn" --new_pass "$(PASSWORD)" SetLocalPassword
-	docker exec -it $(OPENVPN_CONTAINER) sacli start
+	docker exec $(OPENVPN_CONTAINER) sacli --user "openvpn" --new_pass "$(PASSWORD)" SetLocalPassword
+	docker exec $(OPENVPN_CONTAINER) sacli start
 
 docker-up: ## Поднять контейнер
 	docker compose -f $(COMPOSE_FILE) up -d

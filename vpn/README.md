@@ -36,6 +36,7 @@ make o-vpn
 | `VPN_USER`       | Логин VPN-пользователя                                         |
 | `VPN_PASSWORD`   | Пароль VPN-пользователя                                        |
 | `OPENVPN_ADMIN_PORT` | Локальный порт хоста для web/admin UI OpenVPN              |
+| `OPENVPN_HOST` | Публичный IP или DNS-имя сервера для профилей, QR и ссылок OpenVPN |
 | `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
 | `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
 | `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
@@ -58,8 +59,8 @@ OpenVPN Access Server использует:
 | Порт | Протокол | Назначение |
 |---|---|---|
 | `OPENVPN_ADMIN_PORT -> 943` | TCP | Web UI и admin UI |
-| `OPENVPN_TCP_PORT -> 443` | TCP | OpenVPN TCP |
-| `OPENVPN_UDP_PORT -> 1194` | UDP | OpenVPN UDP |
+| `OPENVPN_TCP_PORT -> OPENVPN_TCP_PORT` | TCP | OpenVPN TCP |
+| `OPENVPN_UDP_PORT -> OPENVPN_UDP_PORT` | UDP | OpenVPN UDP |
 
 Admin UI доступна на сервере:
 
@@ -72,6 +73,36 @@ https://127.0.0.1:${OPENVPN_ADMIN_PORT}/admin
 ```bash
 make o-vpn-password PASSWORD='new-password'
 ```
+
+Чтобы профили, QR и ссылки сразу генерировались с нужным адресом и портом, укажи в `.env`:
+
+```env
+OPENVPN_HOST=vpn.example.com
+OPENVPN_TCP_PORT=9443
+OPENVPN_UDP_PORT=1194
+```
+
+`OPENVPN_HOST` обязателен. Это должен быть публичный IP сервера или DNS-имя, которое указывает на сервер. Не ставь сюда `127.0.0.1` или локальный hosts-домен.
+
+Если хочешь подключаться по домену, создай в DNS A-запись:
+
+```text
+vpn.example.com -> <PUBLIC_SERVER_IP>
+```
+
+После этого в `.env` на сервере укажи:
+
+```env
+OPENVPN_HOST=vpn.example.com
+```
+
+После изменения этих значений применить настройки можно так:
+
+```bash
+make o-vpn-apply-config
+```
+
+После применения скачай профиль или открой QR заново: старые уже скачанные профили сами не поменяются.
 
 Если нужен OpenVPN именно через TCP `443`, выставь:
 
@@ -138,6 +169,7 @@ make client-configs CLIENT_CONFIG_DIR=./client-configs
 | `make o-vpn-restart` | Перезапустить OpenVPN Access Server |
 | `make o-vpn-logs` | Логи OpenVPN Access Server |
 | `make o-vpn-ps` | Показать статус OpenVPN Access Server |
+| `make o-vpn-apply-config` | Применить `OPENVPN_HOST`, `OPENVPN_TCP_PORT`, `OPENVPN_UDP_PORT` в OpenVPN AS |
 | `make o-vpn-password PASSWORD='new-password'` | Задать пароль пользователю `openvpn` |
 | `make o-vpn-config` | Показать итоговый OpenVPN Docker Compose config |
 | `make client-ios` | Скопировать `vpnclient.mobileconfig` для iOS и macOS |

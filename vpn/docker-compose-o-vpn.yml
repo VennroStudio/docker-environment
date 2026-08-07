@@ -12,8 +12,8 @@ services:
       - /dev/net/tun:/dev/net/tun
     ports:
       - "127.0.0.1:${OPENVPN_ADMIN_PORT}:943"
-      - "${OPENVPN_TCP_PORT}:443/tcp"
-      - "${OPENVPN_UDP_PORT}:1194/udp"
+      - "${OPENVPN_TCP_PORT}:${OPENVPN_TCP_PORT}/tcp"
+      - "${OPENVPN_UDP_PORT}:${OPENVPN_UDP_PORT}/udp"
     volumes:
       - ${OPENVPN_VOLUME}:/openvpn
     networks:
