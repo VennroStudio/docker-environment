@@ -6,7 +6,6 @@ COMPOSE_FILE ?= docker-compose-registry.yml
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
-.PHONY: auth
 
 ##@ Помощь
 
@@ -30,16 +29,10 @@ network: env ## Создать внешнюю сеть, если она ещё �
 
 ##@ Registry
 
-init: env network auth docker-down docker-pull docker-up ## Инициализировать проект
-up: network auth docker-up ## Поднять проект
+init: env network docker-down docker-pull docker-up ## Инициализировать проект
+up: network docker-up ## Поднять проект
 down: docker-down ## Удалить проект
 restart: down up ## Перезапустить проект
-
-auth: env ## Создать htpasswd для Registry, если он ещё не существует
-	@[ -f $(AUTH_PATH) ] && exit 0; \
-	mkdir -p $(dir $(AUTH_PATH)); \
-	docker run --rm --entrypoint htpasswd httpd:2 -Bbn "$(REGISTRY_USER)" "$(REGISTRY_PASSWORD)" > $(AUTH_PATH); \
-	chmod 600 $(AUTH_PATH)
 
 docker-up: ## Поднять контейнеры
 	docker compose -f $(COMPOSE_FILE) up -d

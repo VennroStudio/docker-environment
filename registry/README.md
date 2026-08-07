@@ -1,6 +1,6 @@
 # Registry
 
-Docker Registry с админ-панелью `a-registry`.
+Docker Registry.
 
 ## Быстрый старт
 
@@ -16,7 +16,6 @@ make init
 
 Команда:
 - создаст внешнюю Docker-сеть (если её ещё нет),
-- создаст `auth/htpasswd` (если его ещё нет),
 - скачает образы и поднимет контейнеры.
 
 ## Настройка `.env`
@@ -29,15 +28,11 @@ make init
 | `NETWORK`                          | Имя внешней Docker-сети, к которой подключаются контейнеры        |
 | `VOLUME`                           | Путь к папке для хранения образов, например `./project-volume`    |
 | `REGISTRY_PORT`                    | Локальный порт хоста для Docker Registry API                      |
-| `A_REGISTRY_PORT`                  | Локальный порт хоста для веб-интерфейса `a-registry`              |
 | `AUTH_PATH`                        | Путь к файлу `htpasswd` (по умолчанию `auth/htpasswd`)             |
 | `REGISTRY_USER`                    | Логин для доступа к Registry                                      |
 | `REGISTRY_PASSWORD`                | Пароль для доступа к Registry                                     |
 | `REGISTRY_AUTH_REALM`              | Realm для HTTP Basic Auth                                         |
 | `REGISTRY_STORAGE_DELETE_ENABLED`  | `true`/`false` — разрешить удаление образов через API              |
-| `A_REGISTRY_TITLE`                 | Заголовок в веб-интерфейсе `a-registry`                           |
-| `A_REGISTRY_AUTH`                  | `true`/`false` — включить авторизацию в веб-интерфейсе             |
-| `A_REGISTRY_DELETE_IMAGES`         | `true`/`false` — разрешить удаление образов из веб-интерфейса      |
 
 ## Команды Makefile
 
@@ -45,9 +40,8 @@ make init
 
 | Команда | Действие |
 |---|---|
-| `make init` | Первичная инициализация: `.env` + сеть + auth + pull + up |
+| `make init` | Первичная инициализация: `.env` + сеть + pull + up |
 | `make up` | Поднять контейнеры |
 | `make down` | Остановить и удалить контейнеры |
 | `make restart` | Перезапустить контейнеры |
-| `make auth` | Создать `auth/htpasswd`, если его ещё нет |
 | `make logs` | Логи контейнеров (последние 100 строк, live) |
