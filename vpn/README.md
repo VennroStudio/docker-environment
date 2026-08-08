@@ -111,13 +111,14 @@ make o-vpn-apply-config
 По умолчанию `make o-vpn-apply-config` не включает принудительный full tunnel и не меняет DNS/маршруты клиентов. Он применяет только:
 
 ```text
+auth.module.type=local
 host.name
 vpn.server.daemon.tcp.port
 vpn.server.daemon.udp.port
 vpn.client.routing.reroute_gw=false
 ```
 
-Также команда создаёт обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` с типом `user_connect`. Для подключения используй его, а не админского пользователя `openvpn`.
+Также команда создаёт обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` с типом `user_connect` и local-аутентификацией. Для подключения используй его, а не админского пользователя `openvpn`.
 
 Для пользователей практичное правило такое: минимум один пользователь на человека. Если хочешь отдельно отзывать доступ с конкретного устройства, создавай отдельного пользователя под устройство, например `viktor-mac` и `viktor-phone`.
 

@@ -103,6 +103,7 @@ o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS дл
 	@test -n "$(OPENVPN_HOST)" || (echo "OPENVPN_HOST is required: set it to public server IP or DNS name" && exit 1)
 	@test -n "$(OPENVPN_TCP_PORT)" || (echo "OPENVPN_TCP_PORT is required" && exit 1)
 	@test -n "$(OPENVPN_UDP_PORT)" || (echo "OPENVPN_UDP_PORT is required" && exit 1)
+	docker exec $(OPENVPN_CONTAINER) sacli --key "auth.module.type" --value "local" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
