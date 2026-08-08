@@ -39,6 +39,9 @@ make o-vpn
 | `OPENVPN_HOST` | Публичный IP или DNS-имя сервера для профилей, QR и ссылок OpenVPN |
 | `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
 | `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
+| `OPENVPN_TCP_DAEMONS` | Количество TCP daemon OpenVPN, обычно `1`                  |
+| `OPENVPN_UDP_DAEMONS` | Количество UDP daemon OpenVPN, `0` если используешь только TCP |
+| `OPENVPN_DNS` | DNS, который OpenVPN отдаёт клиентам                         |
 | `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
 
 ## IPsec/IKEv2
@@ -80,6 +83,9 @@ make o-vpn-password PASSWORD='new-password'
 OPENVPN_HOST=vpn.example.com
 OPENVPN_TCP_PORT=9443
 OPENVPN_UDP_PORT=1194
+OPENVPN_TCP_DAEMONS=1
+OPENVPN_UDP_DAEMONS=0
+OPENVPN_DNS=172.27.224.1
 ```
 
 `OPENVPN_HOST` обязателен. Это должен быть публичный IP сервера или DNS-имя, которое указывает на сервер. Не ставь сюда `127.0.0.1` или локальный hosts-домен.
@@ -103,6 +109,21 @@ make o-vpn-apply-config
 ```
 
 После применения скачай профиль или открой QR заново: старые уже скачанные профили сами не поменяются.
+
+По умолчанию OpenVPN настроен как full tunnel через TCP `9443`. Команда `make o-vpn-apply-config` включает:
+
+```text
+vpn.client.routing.reroute_gw=true
+vpn.client.routing.reroute_dns=custom
+vpn.server.routing.gateway_access=true
+```
+
+Если в логах есть ошибки `nftables Operation not permitted` или клиент подключается, но трафик не идёт, пересоздай контейнер после обновления compose:
+
+```bash
+make o-vpn-down
+make o-vpn-up
+```
 
 Если нужен OpenVPN именно через TCP `443`, выставь:
 

@@ -13,7 +13,7 @@ CLIENT_CONFIG_DIR ?= .
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
 .PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
-.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-apply-config o-vpn-password
+.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-wait o-vpn-apply-config o-vpn-password
 
 ##@ Помощь
 
@@ -65,10 +65,12 @@ ipsec-config: ## Показать итоговый IPsec config
 o-vpn: env network ## Инициализировать OpenVPN Access Server
 	docker compose -f $(OPENVPN_COMPOSE_FILE) pull
 	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+	$(MAKE) --no-print-directory o-vpn-wait
 	$(MAKE) --no-print-directory o-vpn-apply-config
 
 o-vpn-up: network ## Поднять OpenVPN Access Server
 	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
+	$(MAKE) --no-print-directory o-vpn-wait
 	$(MAKE) --no-print-directory o-vpn-apply-config
 
 o-vpn-down: ## Остановить и удалить OpenVPN Access Server
@@ -85,13 +87,34 @@ o-vpn-ps: ## Показать статус OpenVPN Access Server
 o-vpn-config: ## Показать итоговый OpenVPN config
 	docker compose -f $(OPENVPN_COMPOSE_FILE) config
 
+o-vpn-wait: ## Дождаться готовности OpenVPN AS
+	@echo "Waiting for OpenVPN AS..."
+	@for i in $$(seq 1 60); do \
+		if docker exec $(OPENVPN_CONTAINER) sacli ConfigQuery >/dev/null 2>&1; then \
+			echo "OpenVPN AS is ready"; \
+			exit 0; \
+		fi; \
+		sleep 2; \
+	done; \
+	echo "OpenVPN AS is not ready"; \
+	exit 1
+
 o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS для профилей, QR и ссылок
 	@test -n "$(OPENVPN_HOST)" || (echo "OPENVPN_HOST is required: set it to public server IP or DNS name" && exit 1)
 	@test -n "$(OPENVPN_TCP_PORT)" || (echo "OPENVPN_TCP_PORT is required" && exit 1)
 	@test -n "$(OPENVPN_UDP_PORT)" || (echo "OPENVPN_UDP_PORT is required" && exit 1)
+	@test -n "$(OPENVPN_TCP_DAEMONS)" || (echo "OPENVPN_TCP_DAEMONS is required" && exit 1)
+	@test -n "$(OPENVPN_UDP_DAEMONS)" || (echo "OPENVPN_UDP_DAEMONS is required" && exit 1)
+	@test -n "$(OPENVPN_DNS)" || (echo "OPENVPN_DNS is required" && exit 1)
 	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.n_daemons" --value "$(OPENVPN_TCP_DAEMONS)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.n_daemons" --value "$(OPENVPN_UDP_DAEMONS)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_gw" --value "true" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_dns" --value "custom" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.dhcp_option.dns.0" --value "$(OPENVPN_DNS)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.routing.gateway_access" --value "true" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli start
 
 o-vpn-password: ## Задать пароль пользователю openvpn
