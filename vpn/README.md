@@ -88,6 +88,8 @@ make xray-settings
 make xray-password USERNAME='admin' PASSWORD='new-password'
 ```
 
+Команда также сбрасывает 2FA, если она была включена.
+
 ## VLESS + REALITY
 
 В 3x-ui создай inbound:

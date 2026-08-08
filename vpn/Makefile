@@ -91,8 +91,8 @@ xray-settings: ## Показать настройки панели 3x-ui
 xray-password: ## Задать логин и пароль панели 3x-ui: USERNAME=admin PASSWORD=...
 	@test -n "$(USERNAME)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
 	@test -n "$(PASSWORD)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
-	docker exec $(XRAY_CONTAINER) /app/x-ui setting -username "$(USERNAME)" -password "$(PASSWORD)"
-	docker restart $(XRAY_CONTAINER)
+	@docker exec $(XRAY_CONTAINER) /app/x-ui setting -username "$(USERNAME)" -password "$(PASSWORD)" -resetTwoFactor=true >/dev/null
+	@docker restart $(XRAY_CONTAINER) >/dev/null
 
 xray-clean: xray-down ## Удалить локальные данные Xray/3x-ui
 	rm -rf ./x-ui-data ./x-ui-cert ./x-ui-acme
