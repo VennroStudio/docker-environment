@@ -39,6 +39,8 @@ make o-vpn
 | `OPENVPN_HOST` | Публичный IP или DNS-имя сервера для профилей, QR и ссылок OpenVPN |
 | `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
 | `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
+| `OPENVPN_USER` | Обычный VPN-пользователь, который будет создан автоматически |
+| `OPENVPN_PASSWORD` | Пароль обычного VPN-пользователя                         |
 | `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
 
 ## IPsec/IKEv2
@@ -80,6 +82,8 @@ make o-vpn-password PASSWORD='new-password'
 OPENVPN_HOST=vpn.example.com
 OPENVPN_TCP_PORT=9443
 OPENVPN_UDP_PORT=1194
+OPENVPN_USER=viktor
+OPENVPN_PASSWORD=change-me
 ```
 
 `OPENVPN_HOST` обязателен. Это должен быть публичный IP сервера или DNS-имя, которое указывает на сервер. Не ставь сюда `127.0.0.1` или локальный hosts-домен.
@@ -110,7 +114,12 @@ make o-vpn-apply-config
 host.name
 vpn.server.daemon.tcp.port
 vpn.server.daemon.udp.port
+vpn.client.routing.reroute_gw=false
 ```
+
+Также команда создаёт обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` с типом `user_connect`. Для подключения используй его, а не админского пользователя `openvpn`.
+
+Для пользователей практичное правило такое: минимум один пользователь на человека. Если хочешь отдельно отзывать доступ с конкретного устройства, создавай отдельного пользователя под устройство, например `viktor-mac` и `viktor-phone`.
 
 Если в логах есть ошибки `nftables Operation not permitted` или клиент подключается, но трафик не идёт, пересоздай контейнер после обновления compose:
 
@@ -195,6 +204,7 @@ make client-configs CLIENT_CONFIG_DIR=./client-configs
 | `make o-vpn-logs` | Логи OpenVPN Access Server |
 | `make o-vpn-ps` | Показать статус OpenVPN Access Server |
 | `make o-vpn-apply-config` | Применить `OPENVPN_HOST`, `OPENVPN_TCP_PORT`, `OPENVPN_UDP_PORT` в OpenVPN AS |
+| `make o-vpn-user` | Создать обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` |
 | `make o-vpn-password PASSWORD='new-password'` | Задать пароль пользователю `openvpn` |
 | `make o-vpn-config` | Показать итоговый OpenVPN Docker Compose config |
 | `make client-ios` | Скопировать `vpnclient.mobileconfig` для iOS и macOS |

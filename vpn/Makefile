@@ -13,7 +13,7 @@ CLIENT_CONFIG_DIR ?= .
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
 .PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
-.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-wait o-vpn-apply-config o-vpn-password
+.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-wait o-vpn-apply-config o-vpn-user o-vpn-password
 
 ##@ Помощь
 
@@ -106,7 +106,16 @@ o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS дл
 	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
+	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_gw" --value "false" ConfigPut
+	$(MAKE) --no-print-directory o-vpn-user
 	docker exec $(OPENVPN_CONTAINER) sacli start
+
+o-vpn-user: ## Создать обычного OpenVPN-пользователя
+	@test -n "$(OPENVPN_USER)" || (echo "OPENVPN_USER is required" && exit 1)
+	@test -n "$(OPENVPN_PASSWORD)" || (echo "OPENVPN_PASSWORD is required" && exit 1)
+	docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --key "type" --value "user_connect" UserPropPut
+	docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --key "user_auth_type" --value "local" UserPropPut
+	@docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --new_pass "$(OPENVPN_PASSWORD)" SetLocalPassword >/dev/null
 
 o-vpn-password: ## Задать пароль пользователю openvpn
 	@test -n "$(PASSWORD)" || (echo "Usage: make o-vpn-password PASSWORD='new-password'" && exit 1)
