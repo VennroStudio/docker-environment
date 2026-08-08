@@ -36,9 +36,9 @@ config = {
                 "security": "reality",
                 "realitySettings": {
                     "show": False,
-                    "dest": env("XRAY_REALITY_DEST", "www.microsoft.com:443"),
+                    "dest": env("XRAY_REALITY_DEST", "www.bing.com:443"),
                     "xver": 0,
-                    "serverNames": [env("XRAY_REALITY_SERVER_NAME", "www.microsoft.com")],
+                    "serverNames": [env("XRAY_REALITY_SERVER_NAME", "www.bing.com")],
                     "privateKey": env("XRAY_REALITY_PRIVATE_KEY"),
                     "shortIds": [env("XRAY_REALITY_SHORT_ID")],
                 },

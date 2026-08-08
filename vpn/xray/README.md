@@ -9,8 +9,8 @@
 | Переменная | Что писать |
 |---|---|
 | `XRAY_HOST` | IP или домен твоего сервера |
-| `XRAY_REALITY_SERVER_NAME` | SNI маскировочного сайта, например `www.microsoft.com` |
-| `XRAY_REALITY_DEST` | Тот же сайт с портом, например `www.microsoft.com:443` |
+| `XRAY_REALITY_SERVER_NAME` | SNI маскировочного сайта, например `www.bing.com` |
+| `XRAY_REALITY_DEST` | Тот же сайт с портом, например `www.bing.com:443` |
 
 Если есть свой домен, можешь поставить его в `XRAY_HOST`, но `XRAY_REALITY_SERVER_NAME` должен совпадать с маскировочным сайтом из `XRAY_REALITY_DEST`, а не обязательно с твоим доменом.
 
