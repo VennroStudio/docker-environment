@@ -1,9 +1,9 @@
 # VPN
 
-Модуль с двумя VPN-вариантами:
+Модуль с двумя вариантами:
 
 - IPsec/IKEv2 на образе `hwdsl2/ipsec-vpn-server`;
-- OpenVPN Access Server на образе `openvpn/openvpn-as`.
+- Xray через панель `3x-ui` для VLESS + REALITY.
 
 ## Быстрый старт
 
@@ -13,10 +13,10 @@ IPsec/IKEv2 запускается по умолчанию:
 make init
 ```
 
-OpenVPN запускается отдельной командой:
+Xray/3x-ui запускается отдельной командой:
 
 ```bash
-make o-vpn
+make xray
 ```
 
 Команда:
@@ -28,20 +28,21 @@ make o-vpn
 
 Перед первым запуском отредактируй `.env`:
 
-| Переменная       | Описание                                                        |
-|------------------|-----------------------------------------------------------------|
-| `PROJECT_NAME`   | Название проекта Docker Compose                                |
-| `NETWORK`        | Имя внешней Docker-сети, к которой подключается контейнер      |
-| `VPN_IPSEC_PSK`  | Pre-shared key для IPsec                                       |
-| `VPN_USER`       | Логин VPN-пользователя                                         |
-| `VPN_PASSWORD`   | Пароль VPN-пользователя                                        |
-| `OPENVPN_ADMIN_PORT` | Локальный порт хоста для web/admin UI OpenVPN              |
-| `OPENVPN_HOST` | Публичный IP или DNS-имя сервера для профилей, QR и ссылок OpenVPN |
-| `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
-| `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
-| `OPENVPN_USER` | Обычный VPN-пользователь, который будет создан автоматически |
-| `OPENVPN_PASSWORD` | Пароль обычного VPN-пользователя                         |
-| `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
+| Переменная | Описание |
+|---|---|
+| `PROJECT_NAME` | Название проекта Docker Compose |
+| `NETWORK` | Имя внешней Docker-сети, к которой подключаются контейнеры |
+| `VPN_IPSEC_PSK` | Pre-shared key для IPsec |
+| `VPN_USER` | Логин IPsec-пользователя |
+| `VPN_PASSWORD` | Пароль IPsec-пользователя |
+| `XUI_PANEL_PORT` | Локальный порт хоста для панели 3x-ui |
+| `XUI_INTERNAL_PORT` | Внутренний порт панели 3x-ui в контейнере |
+| `XUI_WEB_BASE_PATH` | Начальный путь панели 3x-ui |
+| `XUI_ENABLE_FAIL2BAN` | Включить Fail2ban/IP-limit в 3x-ui |
+| `XUI_DATA_VOLUME` | Папка с SQLite-базой 3x-ui |
+| `XUI_CERT_VOLUME` | Папка сертификатов 3x-ui |
+| `XUI_ACME_VOLUME` | Папка состояния acme.sh |
+| `XRAY_REALITY_PORT` | Публичный TCP-порт VLESS + REALITY inbound |
 
 ## IPsec/IKEv2
 
@@ -54,110 +55,100 @@ IPsec/IKEv2 использует UDP-порты:
 
 Эти порты должны быть открыты на сервере и у хостинг-провайдера. Через Nginx Proxy Manager их проксировать не нужно: это не HTTP/WebSocket-трафик.
 
-## OpenVPN
+## Xray / 3x-ui
 
-OpenVPN Access Server использует:
+3x-ui использует:
 
 | Порт | Протокол | Назначение |
 |---|---|---|
-| `OPENVPN_ADMIN_PORT -> 943` | TCP | Web UI и admin UI |
-| `OPENVPN_TCP_PORT -> OPENVPN_TCP_PORT` | TCP | OpenVPN TCP |
-| `OPENVPN_UDP_PORT -> OPENVPN_UDP_PORT` | UDP | OpenVPN UDP |
+| `127.0.0.1:XUI_PANEL_PORT -> XUI_INTERNAL_PORT` | TCP | Web-панель 3x-ui |
+| `XRAY_REALITY_PORT -> XRAY_REALITY_PORT` | TCP | VLESS + REALITY inbound |
 
-Admin UI доступна на сервере:
+Панель не публикуется наружу. Открывать её нужно через SSH-туннель:
+
+```bash
+ssh -N -L 19019:127.0.0.1:19019 root@<SERVER>
+```
+
+После этого локально:
 
 ```text
-https://127.0.0.1:${OPENVPN_ADMIN_PORT}/admin
+http://127.0.0.1:19019/
 ```
 
-Пароль пользователю `openvpn` можно задать так:
+3x-ui при первом запуске генерирует случайный логин и пароль. Путь панели берётся из `XUI_WEB_BASE_PATH`, у нас по умолчанию `/`. Посмотреть текущие настройки:
 
 ```bash
-make o-vpn-password PASSWORD='new-password'
+make xray-settings
 ```
 
-Чтобы профили, QR и ссылки сразу генерировались с нужным адресом и портом, укажи в `.env`:
+Задать свой логин и пароль:
+
+```bash
+make xray-password USERNAME='admin' PASSWORD='new-password'
+```
+
+## VLESS + REALITY
+
+В 3x-ui создай inbound:
+
+| Поле | Значение |
+|---|---|
+| Protocol | `VLESS` |
+| Port | значение `XRAY_REALITY_PORT` |
+| Network | `TCP` / `Raw` |
+| Security | `REALITY` |
+| Flow | `xtls-rprx-vision` |
+| Fingerprint | `chrome` |
+| Dest | реальный внешний TLS-сайт, например `www.microsoft.com:443` |
+| SNI / Server Name | тот же домен, например `www.microsoft.com` |
+
+Для каждого человека создавай отдельного клиента в этом inbound. Так можно отдельно отключать доступ, смотреть трафик и выдавать отдельную ссылку/QR.
+
+Перед отправкой ссылки проверь, что в ней указан публичный домен или IP сервера, а не `127.0.0.1`. Если панель подставила локальный адрес из SSH-туннеля, замени host в ссылке на публичный домен/IP сервера.
+
+VLESS + REALITY — это proxy. Чтобы на устройстве это работало как VPN для всего трафика, в клиенте вроде Karing нужно включить TUN/global mode.
+
+Если порт `443` свободен, для маскировки обычно лучше использовать:
 
 ```env
-OPENVPN_HOST=vpn.example.com
-OPENVPN_TCP_PORT=9443
-OPENVPN_UDP_PORT=1194
-OPENVPN_USER=viktor
-OPENVPN_PASSWORD=change-me
+XRAY_REALITY_PORT=443
 ```
 
-`OPENVPN_HOST` обязателен. Это должен быть публичный IP сервера или DNS-имя, которое указывает на сервер. Не ставь сюда `127.0.0.1` или локальный hosts-домен.
-
-Если хочешь подключаться по домену, создай в DNS A-запись:
-
-```text
-vpn.example.com -> <PUBLIC_SERVER_IP>
-```
-
-После этого в `.env` на сервере укажи:
+Если `443` уже занят Nginx Proxy Manager или другим контейнером, оставь отдельный порт, например:
 
 ```env
-OPENVPN_HOST=vpn.example.com
+XRAY_REALITY_PORT=9443
 ```
 
-После изменения этих значений применить настройки можно так:
-
-```bash
-make o-vpn-apply-config
-```
-
-После применения скачай профиль или открой QR заново: старые уже скачанные профили сами не поменяются.
-
-По умолчанию `make o-vpn-apply-config` не включает принудительный full tunnel и не меняет DNS/маршруты клиентов. Он применяет только:
-
-```text
-auth.module.type=local
-host.name
-vpn.server.daemon.tcp.port
-vpn.server.daemon.udp.port
-vpn.client.routing.reroute_gw=false
-```
-
-Также команда создаёт обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` с типом `user_connect` и local-аутентификацией. Для подключения используй его, а не админского пользователя `openvpn`.
-
-Для пользователей практичное правило такое: минимум один пользователь на человека. Если хочешь отдельно отзывать доступ с конкретного устройства, создавай отдельного пользователя под устройство, например `viktor-mac` и `viktor-phone`.
-
-Если в логах есть ошибки `nftables Operation not permitted` или клиент подключается, но трафик не идёт, пересоздай контейнер после обновления compose:
-
-```bash
-make o-vpn-down
-make o-vpn-up
-```
-
-Для полной чистой переустановки OpenVPN Access Server нужно удалить не только контейнер, но и папку с данными:
-
-```bash
-make o-vpn-down
-rm -rf ./openvpn-data
-make o-vpn-up
-```
-
-Это удалит пользователей, профили, сертификаты и старые настройки OpenVPN AS.
-
-Если нужен OpenVPN именно через TCP `443`, выставь:
-
-```env
-OPENVPN_TCP_PORT=443
-```
-
-Но на этой же машине порт `443` не должен быть занят Nginx Proxy Manager или другим контейнером. Через Nginx Proxy Manager OpenVPN-трафик проксировать не надо: это не обычный HTTP-сайт.
+Через Nginx Proxy Manager VLESS + REALITY проксировать не нужно: Xray должен принимать сырой TCP-трафик напрямую.
 
 ## Данные
 
 Данные IPsec хранятся в `./data`, который монтируется в `/etc/ipsec.d`.
 
-Данные OpenVPN хранятся в `OPENVPN_VOLUME`, по умолчанию `./openvpn-data`.
+Данные 3x-ui хранятся в:
 
-## Подключение на устройствах
+| Папка | Для чего |
+|---|---|
+| `XUI_DATA_VOLUME` | SQLite-база и настройки панели |
+| `XUI_CERT_VOLUME` | Сертификаты панели |
+| `XUI_ACME_VOLUME` | Состояние acme.sh |
+
+Для полной чистой переустановки Xray/3x-ui:
+
+```bash
+make xray-clean
+make xray
+```
+
+Это удалит пользователей, inbounds, ссылки, сертификаты и старые настройки 3x-ui.
+
+## Подключение IPsec на устройствах
 
 Инструкции для подключения на устройствах: [Configure IPsec/L2TP VPN Clients](https://github.com/hwdsl2/setup-ipsec-vpn/blob/master/docs/clients.md#ios).
 
-Конфигурация клиента доступна внутри Docker-контейнера:
+Конфигурация IPsec-клиента доступна внутри Docker-контейнера:
 
 | Файл в контейнере | Для чего |
 |---|---|
@@ -165,7 +156,7 @@ OPENVPN_TCP_PORT=443
 | `/etc/ipsec.d/vpnclient.sswan` | Android |
 | `/etc/ipsec.d/vpnclient.mobileconfig` | iOS и macOS |
 
-Скопировать конфиги из контейнера на хост:
+Скопировать IPsec-конфиги из контейнера на хост:
 
 ```bash
 make client-ios
@@ -195,21 +186,21 @@ make client-configs CLIENT_CONFIG_DIR=./client-configs
 | `make up` | Поднять IPsec |
 | `make down` | Остановить и удалить IPsec |
 | `make restart` | Перезапустить IPsec |
-| `make logs` | Логи IPsec (последние 100 строк, live) |
+| `make logs` | Логи IPsec |
 | `make ps` | Показать статус IPsec |
 | `make ipsec-config` | Показать итоговый IPsec Docker Compose config |
-| `make o-vpn` | Первичная инициализация OpenVPN Access Server |
-| `make o-vpn-up` | Поднять OpenVPN Access Server |
-| `make o-vpn-down` | Остановить и удалить OpenVPN Access Server |
-| `make o-vpn-restart` | Перезапустить OpenVPN Access Server |
-| `make o-vpn-logs` | Логи OpenVPN Access Server |
-| `make o-vpn-ps` | Показать статус OpenVPN Access Server |
-| `make o-vpn-apply-config` | Применить `OPENVPN_HOST`, `OPENVPN_TCP_PORT`, `OPENVPN_UDP_PORT` в OpenVPN AS |
-| `make o-vpn-user` | Создать обычного пользователя из `OPENVPN_USER` / `OPENVPN_PASSWORD` |
-| `make o-vpn-password PASSWORD='new-password'` | Задать пароль пользователю `openvpn` |
-| `make o-vpn-config` | Показать итоговый OpenVPN Docker Compose config |
+| `make xray` | Первичная инициализация Xray/3x-ui |
+| `make xray-up` | Поднять Xray/3x-ui |
+| `make xray-down` | Остановить и удалить Xray/3x-ui контейнер |
+| `make xray-restart` | Перезапустить Xray/3x-ui |
+| `make xray-logs` | Логи Xray/3x-ui |
+| `make xray-ps` | Показать статус Xray/3x-ui |
+| `make xray-settings` | Показать настройки панели 3x-ui |
+| `make xray-password USERNAME='admin' PASSWORD='new-password'` | Задать логин и пароль панели 3x-ui |
+| `make xray-config` | Показать итоговый Xray/3x-ui Docker Compose config |
+| `make xray-clean` | Остановить Xray/3x-ui и удалить локальные данные |
 | `make client-ios` | Скопировать `vpnclient.mobileconfig` для iOS и macOS |
 | `make client-android` | Скопировать `vpnclient.sswan` для Android |
 | `make client-windows-linux` | Скопировать `vpnclient.p12` для Windows и Linux |
-| `make client-configs` | Скопировать все клиентские конфиги |
+| `make client-configs` | Скопировать все IPsec-клиентские конфиги |
 | `make config` | Показать итоговый IPsec Docker Compose config |

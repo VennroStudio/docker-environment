@@ -4,16 +4,16 @@ export
 
 COMPOSE_FILE ?= docker-compose-ipsec.yml
 IPSEC_COMPOSE_FILE ?= docker-compose-ipsec.yml
-OPENVPN_COMPOSE_FILE ?= docker-compose-o-vpn.yml
+XRAY_COMPOSE_FILE ?= docker-compose-xray.yml
 VPN_CONTAINER ?= vpn-container
-OPENVPN_CONTAINER ?= o-vpn-container
+XRAY_CONTAINER ?= x-ui-container
 CLIENT_CONFIG_DIR ?= .
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
 .PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
-.PHONY: o-vpn o-vpn-up o-vpn-down o-vpn-restart o-vpn-logs o-vpn-ps o-vpn-config o-vpn-wait o-vpn-apply-config o-vpn-user o-vpn-password
+.PHONY: xray xray-up xray-down xray-restart xray-logs xray-ps xray-config xray-pull xray-settings xray-password xray-clean
 
 ##@ Помощь
 
@@ -60,68 +60,44 @@ ipsec-ps: ## Показать статус IPsec
 ipsec-config: ## Показать итоговый IPsec config
 	docker compose -f $(IPSEC_COMPOSE_FILE) config
 
-##@ OpenVPN
+##@ Xray / 3x-ui
 
-o-vpn: env network ## Инициализировать OpenVPN Access Server
-	docker compose -f $(OPENVPN_COMPOSE_FILE) pull
-	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
-	$(MAKE) --no-print-directory o-vpn-wait
-	$(MAKE) --no-print-directory o-vpn-apply-config
+xray: env network xray-pull xray-up ## Инициализировать Xray/3x-ui
 
-o-vpn-up: network ## Поднять OpenVPN Access Server
-	docker compose -f $(OPENVPN_COMPOSE_FILE) up -d
-	$(MAKE) --no-print-directory o-vpn-wait
-	$(MAKE) --no-print-directory o-vpn-apply-config
+xray-up: network ## Поднять Xray/3x-ui
+	docker compose -f $(XRAY_COMPOSE_FILE) up -d
+	@echo "3x-ui panel: http://127.0.0.1:$(XUI_PANEL_PORT)$(XUI_WEB_BASE_PATH)"
 
-o-vpn-down: ## Остановить и удалить OpenVPN Access Server
-	docker compose -f $(OPENVPN_COMPOSE_FILE) down
+xray-down: ## Остановить и удалить Xray/3x-ui контейнер
+	docker compose -f $(XRAY_COMPOSE_FILE) down
 
-o-vpn-restart: o-vpn-down o-vpn-up ## Перезапустить OpenVPN Access Server
+xray-restart: xray-down xray-up ## Перезапустить Xray/3x-ui
 
-o-vpn-logs: ## Показать логи OpenVPN Access Server
-	docker compose -f $(OPENVPN_COMPOSE_FILE) logs -f --tail=100
+xray-logs: ## Показать логи Xray/3x-ui
+	docker compose -f $(XRAY_COMPOSE_FILE) logs -f --tail=100
 
-o-vpn-ps: ## Показать статус OpenVPN Access Server
-	docker compose -f $(OPENVPN_COMPOSE_FILE) ps
+xray-ps: ## Показать статус Xray/3x-ui
+	docker compose -f $(XRAY_COMPOSE_FILE) ps
 
-o-vpn-config: ## Показать итоговый OpenVPN config
-	docker compose -f $(OPENVPN_COMPOSE_FILE) config
+xray-config: ## Показать итоговый Xray/3x-ui config
+	docker compose -f $(XRAY_COMPOSE_FILE) config
 
-o-vpn-wait: ## Дождаться готовности OpenVPN AS
-	@echo "Waiting for OpenVPN AS..."
-	@for i in $$(seq 1 60); do \
-		if docker exec $(OPENVPN_CONTAINER) sacli ConfigQuery >/dev/null 2>&1; then \
-			echo "OpenVPN AS is ready"; \
-			exit 0; \
-		fi; \
-		sleep 2; \
-	done; \
-	echo "OpenVPN AS is not ready"; \
-	exit 1
+xray-pull: ## Скачать свежий образ 3x-ui
+	docker compose -f $(XRAY_COMPOSE_FILE) pull
 
-o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS для профилей, QR и ссылок
-	@test -n "$(OPENVPN_HOST)" || (echo "OPENVPN_HOST is required: set it to public server IP or DNS name" && exit 1)
-	@test -n "$(OPENVPN_TCP_PORT)" || (echo "OPENVPN_TCP_PORT is required" && exit 1)
-	@test -n "$(OPENVPN_UDP_PORT)" || (echo "OPENVPN_UDP_PORT is required" && exit 1)
-	docker exec $(OPENVPN_CONTAINER) sacli --key "auth.module.type" --value "local" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_gw" --value "false" ConfigPut
-	$(MAKE) --no-print-directory o-vpn-user
-	docker exec $(OPENVPN_CONTAINER) sacli start
+xray-settings: ## Показать настройки панели 3x-ui
+	docker exec $(XRAY_CONTAINER) /app/x-ui setting -show true
 
-o-vpn-user: ## Создать обычного OpenVPN-пользователя
-	@test -n "$(OPENVPN_USER)" || (echo "OPENVPN_USER is required" && exit 1)
-	@test -n "$(OPENVPN_PASSWORD)" || (echo "OPENVPN_PASSWORD is required" && exit 1)
-	docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --key "type" --value "user_connect" UserPropPut
-	docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --key "user_auth_type" --value "local" UserPropPut
-	@docker exec $(OPENVPN_CONTAINER) sacli --user "$(OPENVPN_USER)" --new_pass "$(OPENVPN_PASSWORD)" SetLocalPassword >/dev/null
+xray-password: ## Задать логин и пароль панели 3x-ui: USERNAME=admin PASSWORD=...
+	@test -n "$(USERNAME)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
+	@test -n "$(PASSWORD)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
+	docker exec $(XRAY_CONTAINER) /app/x-ui setting -username "$(USERNAME)" -password "$(PASSWORD)"
+	docker restart $(XRAY_CONTAINER)
 
-o-vpn-password: ## Задать пароль пользователю openvpn
-	@test -n "$(PASSWORD)" || (echo "Usage: make o-vpn-password PASSWORD='new-password'" && exit 1)
-	docker exec $(OPENVPN_CONTAINER) sacli --user "openvpn" --new_pass "$(PASSWORD)" SetLocalPassword
-	docker exec $(OPENVPN_CONTAINER) sacli start
+xray-clean: xray-down ## Удалить локальные данные Xray/3x-ui
+	rm -rf ./x-ui-data ./x-ui-cert ./x-ui-acme
+
+##@ Docker
 
 docker-up: ## Поднять контейнер
 	docker compose -f $(COMPOSE_FILE) up -d
