@@ -1,6 +1,0 @@
-*
-!.env.example
-!.gitignore
-!docker-compose-*.yml
-!Makefile
-!README.md

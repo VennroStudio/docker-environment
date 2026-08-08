@@ -1,9 +1,6 @@
-*
+Makefile
 !.env.example
 !.gitignore
 !docker-compose-*.yml
 !Makefile
 !README.md
-!config.yaml.example
-!scripts/
-!scripts/*.py
