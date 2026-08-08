@@ -5,3 +5,5 @@
 !Makefile
 !README.md
 !config.yaml.example
+!scripts/
+!scripts/*.py

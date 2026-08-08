@@ -1,20 +1,29 @@
 {
   "log": {
-    "loglevel": "warning"
+    "loglevel": "REPLACE_WITH_LOG_LEVEL"
   },
   "inbounds": [
     {
       "listen": "0.0.0.0",
-      "port": 443,
+      "port": 9443,
       "protocol": "vless",
       "settings": {
         "clients": [
           {
             "id": "REPLACE_WITH_UUID",
-            "flow": "xtls-rprx-vision"
+            "flow": "xtls-rprx-vision",
+            "email": "REPLACE_WITH_CLIENT_NAME"
           }
         ],
         "decryption": "none"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls",
+          "quic"
+        ]
       },
       "streamSettings": {
         "network": "tcp",
@@ -38,6 +47,10 @@
     {
       "protocol": "freedom",
       "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "blocked"
     }
   ]
 }

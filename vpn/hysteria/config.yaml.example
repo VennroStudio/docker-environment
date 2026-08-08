@@ -1,8 +1,8 @@
-listen: :443
+listen: :REPLACE_WITH_PORT
 
 tls:
-  cert: /etc/letsencrypt/live/REPLACE_WITH_DOMAIN/fullchain.pem
-  key: /etc/letsencrypt/live/REPLACE_WITH_DOMAIN/privkey.pem
+  cert: REPLACE_WITH_CERT_PATH
+  key: REPLACE_WITH_KEY_PATH
 
 auth:
   type: password
@@ -16,5 +16,5 @@ obfs:
 masquerade:
   type: proxy
   proxy:
-    url: https://www.microsoft.com
+    url: REPLACE_WITH_MASQUERADE_URL
     rewriteHost: true

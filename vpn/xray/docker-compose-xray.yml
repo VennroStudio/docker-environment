@@ -2,13 +2,14 @@ name: ${PROJECT_NAME}
 
 services:
   xray:
-    image: teddysun/xray:latest
-    container_name: xray-container
+    image: ${XRAY_IMAGE}
+    container_name: ${XRAY_CONTAINER}
     restart: unless-stopped
+    command: run -config /etc/xray/config.json
     volumes:
       - ./config.json:/etc/xray/config.json:ro
     ports:
-      - "443:443"
+      - "${XRAY_BIND_IP}:${XRAY_PORT}:${XRAY_PORT}/tcp"
     networks:
       - network-name
 

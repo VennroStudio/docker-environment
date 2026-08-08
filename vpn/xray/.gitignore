@@ -5,3 +5,5 @@
 !Makefile
 !README.md
 !config.json.example
+!scripts/
+!scripts/*.py

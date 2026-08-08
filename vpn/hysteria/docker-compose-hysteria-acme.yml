@@ -1,0 +1,4 @@
+services:
+  hysteria:
+    ports:
+      - "${HYSTERIA_BIND_IP}:${HYSTERIA_ACME_HTTP_PORT}:${HYSTERIA_ACME_HTTP_PORT}/tcp"
