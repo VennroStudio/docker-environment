@@ -4,4 +4,4 @@
 !docker-compose-*.yml
 !Makefile
 !README.md
-!config.json.example
+!config.yaml.example

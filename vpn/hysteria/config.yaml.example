@@ -1,0 +1,20 @@
+listen: :443
+
+tls:
+  cert: /etc/letsencrypt/live/REPLACE_WITH_DOMAIN/fullchain.pem
+  key: /etc/letsencrypt/live/REPLACE_WITH_DOMAIN/privkey.pem
+
+auth:
+  type: password
+  password: REPLACE_WITH_PASSWORD
+
+obfs:
+  type: salamander
+  salamander:
+    password: REPLACE_WITH_OBFS_PASSWORD
+
+masquerade:
+  type: proxy
+  proxy:
+    url: https://www.microsoft.com
+    rewriteHost: true
