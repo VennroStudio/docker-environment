@@ -1,0 +1,20 @@
+name: ${PROJECT_NAME}
+
+services:
+  hysteria2:
+    image: tobyxdd/hysteria:latest
+    container_name: hysteria2-container
+    restart: unless-stopped
+    command: server -c /etc/hysteria/config.yaml
+    volumes:
+      - ./config.yaml:/etc/hysteria/config.yaml:ro
+      - ${NPM_LETSENCRYPT_PATH}:/etc/letsencrypt:ro
+    ports:
+      - "443:443/udp"
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
