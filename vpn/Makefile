@@ -103,28 +103,9 @@ o-vpn-apply-config: ## Применить hostname и порты OpenVPN AS дл
 	@test -n "$(OPENVPN_HOST)" || (echo "OPENVPN_HOST is required: set it to public server IP or DNS name" && exit 1)
 	@test -n "$(OPENVPN_TCP_PORT)" || (echo "OPENVPN_TCP_PORT is required" && exit 1)
 	@test -n "$(OPENVPN_UDP_PORT)" || (echo "OPENVPN_UDP_PORT is required" && exit 1)
-	@test -n "$(OPENVPN_TCP_DAEMONS)" || (echo "OPENVPN_TCP_DAEMONS is required" && exit 1)
-	@test -n "$(OPENVPN_UDP_DAEMONS)" || (echo "OPENVPN_UDP_DAEMONS is required" && exit 1)
-	@test -n "$(OPENVPN_DNS)" || (echo "OPENVPN_DNS is required" && exit 1)
 	docker exec $(OPENVPN_CONTAINER) sacli --key "host.name" --value "$(OPENVPN_HOST)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.port" --value "$(OPENVPN_TCP_PORT)" ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.port" --value "$(OPENVPN_UDP_PORT)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.tcp.n_daemons" --value "$(OPENVPN_TCP_DAEMONS)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.daemon.udp.n_daemons" --value "$(OPENVPN_UDP_DAEMONS)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_gw" --value "true" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.routing.reroute_dns" --value "custom" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.dhcp_option.dns.0" --value "$(OPENVPN_DNS)" ConfigPut
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.server.routing.gateway_access" --value "true" ConfigPut
-	@bypass_ip="$(OPENVPN_BYPASS_IP)"; \
-	if [ -z "$$bypass_ip" ]; then \
-		bypass_ip="$$(docker exec $(OPENVPN_CONTAINER) getent ahostsv4 "$(OPENVPN_HOST)" | awk 'NR == 1 { print $$1; exit }')"; \
-	fi; \
-	test -n "$$bypass_ip" || (echo "Cannot resolve OPENVPN_HOST for client bypass route" && exit 1); \
-	tmp_file="$$(mktemp)"; \
-	printf 'route %s 255.255.255.255 net_gateway\n' "$$bypass_ip" > "$$tmp_file"; \
-	docker cp "$$tmp_file" $(OPENVPN_CONTAINER):/tmp/openvpn-client-config.txt; \
-	rm -f "$$tmp_file"; \
-	docker exec $(OPENVPN_CONTAINER) sacli --key "vpn.client.config_text" --value_file=/tmp/openvpn-client-config.txt ConfigPut
 	docker exec $(OPENVPN_CONTAINER) sacli start
 
 o-vpn-password: ## Задать пароль пользователю openvpn

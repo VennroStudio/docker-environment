@@ -39,10 +39,6 @@ make o-vpn
 | `OPENVPN_HOST` | Публичный IP или DNS-имя сервера для профилей, QR и ссылок OpenVPN |
 | `OPENVPN_TCP_PORT` | Публичный TCP-порт OpenVPN                                   |
 | `OPENVPN_UDP_PORT` | Публичный UDP-порт OpenVPN                                   |
-| `OPENVPN_TCP_DAEMONS` | Количество TCP daemon OpenVPN, обычно `1`                  |
-| `OPENVPN_UDP_DAEMONS` | Количество UDP daemon OpenVPN, `0` если используешь только TCP |
-| `OPENVPN_DNS` | DNS, который OpenVPN отдаёт клиентам                         |
-| `OPENVPN_BYPASS_IP` | Публичный IP OpenVPN-сервера для обходного маршрута, можно оставить пустым |
 | `OPENVPN_VOLUME` | Папка с данными OpenVPN Access Server                         |
 
 ## IPsec/IKEv2
@@ -84,10 +80,6 @@ make o-vpn-password PASSWORD='new-password'
 OPENVPN_HOST=vpn.example.com
 OPENVPN_TCP_PORT=9443
 OPENVPN_UDP_PORT=1194
-OPENVPN_TCP_DAEMONS=1
-OPENVPN_UDP_DAEMONS=0
-OPENVPN_DNS=172.27.224.1
-OPENVPN_BYPASS_IP=
 ```
 
 `OPENVPN_HOST` обязателен. Это должен быть публичный IP сервера или DNS-имя, которое указывает на сервер. Не ставь сюда `127.0.0.1` или локальный hosts-домен.
@@ -112,24 +104,12 @@ make o-vpn-apply-config
 
 После применения скачай профиль или открой QR заново: старые уже скачанные профили сами не поменяются.
 
-По умолчанию OpenVPN настроен как full tunnel через TCP `9443`. Команда `make o-vpn-apply-config` включает:
+По умолчанию `make o-vpn-apply-config` не включает принудительный full tunnel и не меняет DNS/маршруты клиентов. Он применяет только:
 
 ```text
-vpn.client.routing.reroute_gw=true
-vpn.client.routing.reroute_dns=custom
-vpn.server.routing.gateway_access=true
-```
-
-Также в клиентские профили добавляется bypass route до публичного IP OpenVPN-сервера:
-
-```text
-route <PUBLIC_SERVER_IP> 255.255.255.255 net_gateway
-```
-
-Это нужно для full tunnel: соединение до самого VPN-сервера должно идти через обычный интернет, а не заворачиваться внутрь VPN. Если DNS-имя сервера резолвится не туда, укажи IP явно:
-
-```env
-OPENVPN_BYPASS_IP=<PUBLIC_SERVER_IP>
+host.name
+vpn.server.daemon.tcp.port
+vpn.server.daemon.udp.port
 ```
 
 Если в логах есть ошибки `nftables Operation not permitted` или клиент подключается, но трафик не идёт, пересоздай контейнер после обновления compose:
@@ -138,6 +118,16 @@ OPENVPN_BYPASS_IP=<PUBLIC_SERVER_IP>
 make o-vpn-down
 make o-vpn-up
 ```
+
+Для полной чистой переустановки OpenVPN Access Server нужно удалить не только контейнер, но и папку с данными:
+
+```bash
+make o-vpn-down
+rm -rf ./openvpn-data
+make o-vpn-up
+```
+
+Это удалит пользователей, профили, сертификаты и старые настройки OpenVPN AS.
 
 Если нужен OpenVPN именно через TCP `443`, выставь:
 
