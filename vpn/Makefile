@@ -4,16 +4,13 @@ export
 
 COMPOSE_FILE ?= docker-compose-ipsec.yml
 IPSEC_COMPOSE_FILE ?= docker-compose-ipsec.yml
-XRAY_COMPOSE_FILE ?= docker-compose-xray.yml
 VPN_CONTAINER ?= vpn-container
-XRAY_CONTAINER ?= x-ui-container
 CLIENT_CONFIG_DIR ?= .
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: client-configs client-ios client-android client-windows-linux
 .PHONY: ipsec ipsec-up ipsec-down ipsec-restart ipsec-logs ipsec-ps ipsec-config
-.PHONY: xray xray-up xray-down xray-restart xray-logs xray-ps xray-config xray-pull xray-settings xray-password xray-clean
 
 ##@ Помощь
 
@@ -59,43 +56,6 @@ ipsec-ps: ## Показать статус IPsec
 
 ipsec-config: ## Показать итоговый IPsec config
 	docker compose -f $(IPSEC_COMPOSE_FILE) config
-
-##@ Xray / 3x-ui
-
-xray: env network xray-pull xray-up ## Инициализировать Xray/3x-ui
-
-xray-up: network ## Поднять Xray/3x-ui
-	docker compose -f $(XRAY_COMPOSE_FILE) up -d
-	@echo "3x-ui panel: http://127.0.0.1:$(XUI_PANEL_PORT)$(XUI_WEB_BASE_PATH)"
-
-xray-down: ## Остановить и удалить Xray/3x-ui контейнер
-	docker compose -f $(XRAY_COMPOSE_FILE) down
-
-xray-restart: xray-down xray-up ## Перезапустить Xray/3x-ui
-
-xray-logs: ## Показать логи Xray/3x-ui
-	docker compose -f $(XRAY_COMPOSE_FILE) logs -f --tail=100
-
-xray-ps: ## Показать статус Xray/3x-ui
-	docker compose -f $(XRAY_COMPOSE_FILE) ps
-
-xray-config: ## Показать итоговый Xray/3x-ui config
-	docker compose -f $(XRAY_COMPOSE_FILE) config
-
-xray-pull: ## Скачать свежий образ 3x-ui
-	docker compose -f $(XRAY_COMPOSE_FILE) pull
-
-xray-settings: ## Показать настройки панели 3x-ui
-	docker exec $(XRAY_CONTAINER) /app/x-ui setting -show true
-
-xray-password: ## Задать логин и пароль панели 3x-ui: USERNAME=admin PASSWORD=...
-	@test -n "$(USERNAME)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
-	@test -n "$(PASSWORD)" || (echo "Usage: make xray-password USERNAME='admin' PASSWORD='new-password'" && exit 1)
-	@docker exec $(XRAY_CONTAINER) /app/x-ui setting -username "$(USERNAME)" -password "$(PASSWORD)" -resetTwoFactor=true >/dev/null
-	@docker restart $(XRAY_CONTAINER) >/dev/null
-
-xray-clean: xray-down ## Удалить локальные данные Xray/3x-ui
-	rm -rf ./x-ui-data ./x-ui-cert ./x-ui-acme
 
 ##@ Docker
 
