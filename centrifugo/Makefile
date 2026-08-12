@@ -22,6 +22,11 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
+##@ Конфиг
+
+cnf: ## Безопасно скопировать config.yaml из example
+	@[ -f config.yaml ] || cp config.yaml.example config.yaml
+
 ##@ Сеть
 
 network: env ## Создать внешнюю сеть, если она ещё не существует

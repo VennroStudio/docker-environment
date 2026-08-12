@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:${CENTRIFUGO_PORT}:9000"
     volumes:
-      - ./config.json:/centrifugo/config.json:ro
+      - ./config.yaml:/centrifugo/config.yaml:ro
     environment:
       CENTRIFUGO_CLIENT_TOKEN_HMAC_SECRET_KEY: ${CENTRIFUGO_HMAC_SECRET_KEY}
       CENTRIFUGO_CLIENT_ALLOWED_ORIGINS: ${CENTRIFUGO_ALLOWED_ORIGINS}
