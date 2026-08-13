@@ -5,7 +5,7 @@ services:
     image: centrifugo/centrifugo:latest
     container_name: centrifugo-container
     restart: unless-stopped
-    command: centrifugo -c config.json
+    command: centrifugo -c config.yaml
     ports:
       - "127.0.0.1:${CENTRIFUGO_PORT}:9000"
     volumes:
