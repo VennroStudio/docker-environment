@@ -3,6 +3,8 @@ include .env.example
 export
 
 COMPOSE_FILE ?= docker-compose-registry.yml
+REGISTRY_CURL_USER = $(if $(filter command line,$(origin USER)),$(USER),$${REGISTRY_USER})
+REGISTRY_CURL_PASS = $(if $(filter command line,$(origin PASS)),$(PASS),$${REGISTRY_PASSWORD})
 
 .PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
@@ -72,7 +74,6 @@ create-user: env ## Создать основного пользователя R
 		echo "Файл auth/htpasswd уже существует"; \
 	fi
 
-
 add-user: ## Добавить нового пользователя
 	@test -f auth/htpasswd || (echo "Сначала создай auth/htpasswd через make create-user"; exit 1)
 	@echo "Введите имя пользователя:"
@@ -82,7 +83,6 @@ add-user: ## Добавить нового пользователя
 	echo "Пользователь $$username добавлен"
 	@docker compose -f $(COMPOSE_FILE) restart registry
 
-
 change-password: ## Изменить пароль существующего пользователя
 	@test -f auth/htpasswd || (echo "Сначала создай auth/htpasswd через make create-user"; exit 1)
 	@echo "Введите имя пользователя:"
@@ -91,7 +91,6 @@ change-password: ## Изменить пароль существующего п�
 	htpasswd -B auth/htpasswd "$$username" && \
 	echo "Пароль для $$username изменен"
 	@docker compose -f $(COMPOSE_FILE) restart registry
-
 
 list-users: ## Показать список пользователей
 	@test -f auth/htpasswd || (echo "Файл auth/htpasswd не найден"; exit 1)
@@ -110,14 +109,14 @@ remove-user: ## Удалить пользователя
 
 list-images: ## Просмотр образов в Registry
 	@echo "Образы в Registry:"
-	@curl -su "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" "http://127.0.0.1:$${REGISTRY_PORT}/v2/_catalog" | jq -r '.repositories[]?' 2>/dev/null || \
-	curl -su "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" "http://127.0.0.1:$${REGISTRY_PORT}/v2/_catalog"
+	@curl -su "$(REGISTRY_CURL_USER):$(REGISTRY_CURL_PASS)" "http://127.0.0.1:$${REGISTRY_PORT}/v2/_catalog" | jq -r '.repositories[]?' 2>/dev/null || \
+	curl -su "$(REGISTRY_CURL_USER):$(REGISTRY_CURL_PASS)" "http://127.0.0.1:$${REGISTRY_PORT}/v2/_catalog"
 
 list-tags: ## Просмотр тегов образа
 	@echo "Введите имя образа (например: app-php-fpm):"
 	@read image && \
-	curl -su "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" "http://127.0.0.1:$${REGISTRY_PORT}/v2/$$image/tags/list" | jq '.' 2>/dev/null || \
-	curl -su "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" "http://127.0.0.1:$${REGISTRY_PORT}/v2/$$image/tags/list"
+	curl -su "$(REGISTRY_CURL_USER):$(REGISTRY_CURL_PASS)" "http://127.0.0.1:$${REGISTRY_PORT}/v2/$$image/tags/list" | jq '.' 2>/dev/null || \
+	curl -su "$(REGISTRY_CURL_USER):$(REGISTRY_CURL_PASS)" "http://127.0.0.1:$${REGISTRY_PORT}/v2/$$image/tags/list"
 
 storage-size: ## Проверка размера хранилища
 	@echo "Размер хранилища Registry:"

@@ -54,3 +54,11 @@ make init
 | `make remove-user` | Удалить пользователя |
 | `make list-images` | Показать репозитории в Registry |
 | `make list-tags` | Показать теги выбранного образа |
+
+Для `list-images` и `list-tags` по умолчанию используются `REGISTRY_USER` и `REGISTRY_PASSWORD` из `.env`.
+Можно передать другого пользователя точечно:
+
+```bash
+make list-images USER=readonly PASS='password'
+make list-tags USER=readonly PASS='password'
+```
