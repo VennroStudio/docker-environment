@@ -12,7 +12,7 @@ services:
       - ./auth:/auth:ro
     environment:
       REGISTRY_AUTH: htpasswd
-      REGISTRY_AUTH_HTPASSWD_PATH: ${AUTH_PATH}
+      REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
       REGISTRY_AUTH_HTPASSWD_REALM: ${REGISTRY_AUTH_REALM}
       REGISTRY_STORAGE_DELETE_ENABLED: "${REGISTRY_STORAGE_DELETE_ENABLED}"
     networks:
