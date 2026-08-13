@@ -61,9 +61,6 @@ glitchtip: ## Инициализировать GlitchTip
 tiredofit: ## Инициализировать TiredOfIt DB Backup
 	$(MAKE) -C tiredofit init
 
-mail-single: ## Инициализировать Mailu на одном сервере
-	$(MAKE) -C mail/single init
-
 ##@ Production
 
 deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
