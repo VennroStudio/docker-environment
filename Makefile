@@ -6,6 +6,10 @@ export
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone
 .PHONY: archive unarchive clear-mac-copy hosts tunnel hex-32 hex-64 push
 
+TUNNELS = $(T_CENTRIFUGO_WS) $(T_CENTRIFUGO_UI) $(T_MARIADB) $(T_PMA) $(T_GLITCHTIP) \
+$(T_LIVEKIT) $(T_NGINX) $(T_RUSTFS_API) $(T_RUSTFS_WEB) $(T_PORTAINER) $(T_REDIS) \
+$(T_REDIS_WEB) $(T_RABBIT_AMQP) $(T_RABBIT_WEB) $(T_POSTGRES) $(T_POSTGRES_WEB) $(T_REGISTRY)
+
 ##@ Помощь
 
 help: ## Показать список команд
