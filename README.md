@@ -19,7 +19,7 @@
 127.0.0.1       api.redis.local
 
 127.0.0.1       web.centrifugo.local
-127.0.0.1       wss.centrifugo.local
+127.0.0.1       ws.centrifugo.local
 
 127.0.0.1       livekit.local
 ```
@@ -44,7 +44,7 @@
 127.0.0.1       api.redis.server
 
 127.0.0.1       web.centrifugo.server
-127.0.0.1       wss.centrifugo.server
+127.0.0.1       ws.centrifugo.server
 
 127.0.0.1       livekit.server
 ```
