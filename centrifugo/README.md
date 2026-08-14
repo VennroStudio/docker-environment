@@ -21,7 +21,8 @@ make init
 |--------------------------------|---------------------------------------------------------------------------|
 | `PROJECT_NAME`                | Название проекта (влияет на префикс контейнеров в Docker)                |
 | `NETWORK`                     | Имя внешней Docker-сети, к которой подключается контейнер                |
-| `CENTRIFUGO_PORT`                        | Локальный порт хоста для админ-панели и internal endpoints Centrifugo    |
+| `CENTRIFUGO_WS_PORT`          | Локальный порт хоста для публичного WebSocket/API сервера Centrifugo     |
+| `CENTRIFUGO_API_PORT`         | Локальный порт хоста для HTTP API, админ-панели и internal endpoints Centrifugo |
 | `CENTRIFUGO_HMAC_SECRET_KEY`  | Секрет для подписи JWT-токенов клиентских подключений                    |
 | `CENTRIFUGO_ADMIN_PASSWORD`   | Пароль для входа в админ-панель Centrifugo                               |
 | `CENTRIFUGO_ADMIN_SECRET`     | Секрет для JWT-сессии админ-панели                                       |
@@ -30,9 +31,9 @@ make init
 
 ⚠️ В настройках прокси-хоста (NPM) обязательно включите тумблер **«Поддержка WebSocket»** — без него клиенты не смогут подключиться.
 
-## Настройка `config.json`
+## Настройка `config.yaml`
 
-Структура каналов (namespaces, поведение presence/join-leave и т.д.) задаётся в `config.json`.
+Структура каналов (namespaces, поведение presence/join-leave и т.д.) задаётся в `config.yaml`.
 
 Namespace `photo` используется backend-ом для realtime-событий Photo API в каналах вида `$photo:{photoId}`.
 

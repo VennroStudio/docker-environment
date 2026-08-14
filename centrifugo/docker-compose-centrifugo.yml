@@ -8,7 +8,7 @@ services:
     command: centrifugo -c config.yaml
     ports:
       - "127.0.0.1:${CENTRIFUGO_WS_PORT}:8000"
-      - "127.0.0.1:${CENTRIFUGO_WEB_PORT}:9000"
+      - "127.0.0.1:${CENTRIFUGO_API_PORT}:9000"
     volumes:
       - ./config.yaml:/centrifugo/config.yaml:ro
     environment:
