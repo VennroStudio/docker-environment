@@ -1,7 +1,7 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit mail-single
+.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone
 .PHONY: archive unarchive clear-mac-copy hosts tunnel hex-32 hex-64 push
@@ -27,7 +27,7 @@ env: ## Безопасно скопировать .env из example
 
 ##@ Инициализация
 
-init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs ## Инициализировать все сервисы
+init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit ## Инициализировать все сервисы
 
 define check-env
 	@if [ -f $(1)/.env ]; then \
@@ -145,7 +145,7 @@ tunnel: ## Открыть SSH-туннели к серверу
 
 ##@ hex
 
-hex-16: ## Сгенерировать случайную строку из 8 байт
+hex-8: ## Сгенерировать случайную строку из 8 байт
 	openssl rand -hex 8
 
 hex-16: ## Сгенерировать случайную строку из 16 байт
