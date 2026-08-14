@@ -31,12 +31,6 @@ make init
 
 ⚠️ В настройках прокси-хоста (NPM) обязательно включите тумблер **«Поддержка WebSocket»** — без него клиенты не смогут подключиться.
 
-## Настройка `config.yaml`
-
-Структура каналов (namespaces, поведение presence/join-leave и т.д.) задаётся в `config.yaml`.
-
-Namespace `photo` используется backend-ом для realtime-событий Photo API в каналах вида `$photo:{photoId}`.
-
 ## Команды Makefile
 
 Полный список — `make help`.
