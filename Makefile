@@ -29,41 +29,49 @@ env: ## Безопасно скопировать .env из example
 
 init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs ## Инициализировать все сервисы
 
+define check-env
+	@if [ -f $(1)/.env ]; then \
+		$(MAKE) -C $(1) init; \
+	else \
+		echo "⚠️  $(1)/.env не найден, пропускаем инициализацию $(1)"; \
+	fi
+endef
+
 centrifugo: ## Инициализировать Centrifugo
-	$(MAKE) -C centrifugo init
+	$(call check-env,centrifugo)
 
 livekit: ## Инициализировать LiveKit
-	$(MAKE) -C livekit init
+	$(call check-env,livekit)
 
 mariadb: ## Инициализировать MariaDB
-	$(MAKE) -C mariadb init
+	$(call check-env,mariadb)
 
 postgres: ## Инициализировать PostgreSQL
-	$(MAKE) -C postgres init
+	$(call check-env,postgres)
 
 nginx: ## Инициализировать Nginx
-	$(MAKE) -C nginx init
+	$(call check-env,nginx)
 
 portainer: ## Инициализировать Portainer
-	$(MAKE) -C portainer init
+	$(call check-env,portainer)
 
 rabbitmq: ## Инициализировать RabbitMQ
-	$(MAKE) -C rabbitmq init
+	$(call check-env,rabbitmq)
 
 redis: ## Инициализировать Redis
-	$(MAKE) -C redis init
+	$(call check-env,redis)
 
 registry: ## Инициализировать Registry
-	$(MAKE) -C registry init
+	$(call check-env,registry)
 
 rustfs: ## Инициализировать RustFS
-	$(MAKE) -C rustfs init
+	$(call check-env,rustfs)
 
 glitchtip: ## Инициализировать GlitchTip
-	$(MAKE) -C glitchtip init
+	$(call check-env,glitchtip)
 
 tiredofit: ## Инициализировать TiredOfIt DB Backup
-	$(MAKE) -C tiredofit init
+	$(call check-env,tiredofit)
 
 ##@ Production
 
