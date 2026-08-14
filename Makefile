@@ -77,44 +77,52 @@ tiredofit: ## Инициализировать TiredOfIt DB Backup
 
 deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
 
+define check-deploy
+	@if [ -f $(1)/.env.prod ]; then \
+		scp -P $(PORT) $(1)/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/$(1)/.env; \
+	else \
+		echo "⚠️  $(1)/.env.prod не найден, пропускаем деплой $(1)"; \
+	fi
+endef
+
 deploy-centrifugo: ## Отправить .env.prod Centrifugo на сервер
-	scp -P $(PORT) centrifugo/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/centrifugo/.env
+	$(call check-deploy,centrifugo)
 
 deploy-livekit: ## Отправить .env.prod LiveKit на сервер
-	scp -P $(PORT) livekit/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/livekit/.env
+	$(call check-deploy,livekit)
 
 deploy-mariadb: ## Отправить .env.prod MariaDB на сервер
-	scp -P $(PORT) mariadb/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/mariadb/.env
+	$(call check-deploy,mariadb)
 
 deploy-nginx: ## Отправить .env.prod Nginx на сервер
-	scp -P $(PORT) nginx/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/nginx/.env
+	$(call check-deploy,nginx)
 
 deploy-portainer: ## Отправить .env.prod Portainer на сервер
-	scp -P $(PORT) portainer/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/portainer/.env
+	$(call check-deploy,portainer)
 
 deploy-rabbitmq: ## Отправить .env.prod RabbitMQ на сервер
-	scp -P $(PORT) rabbitmq/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rabbitmq/.env
+	$(call check-deploy,rabbitmq)
 
 deploy-redis: ## Отправить .env.prod Redis на сервер
-	scp -P $(PORT) redis/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/redis/.env
+	$(call check-deploy,redis)
 
 deploy-registry: ## Отправить .env.prod Registry на сервер
-	scp -P $(PORT) registry/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/registry/.env
+	$(call check-deploy,registry)
 
 deploy-rustfs: ## Отправить .env.prod RustFS на сервер
-	scp -P $(PORT) rustfs/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/rustfs/.env
+	$(call check-deploy,rustfs)
 
 deploy-postgres: ## Отправить .env.prod PostgreSQL на сервер
-	scp -P $(PORT) postgres/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/postgres/.env
+	$(call check-deploy,postgres)
 
 deploy-glitchtip: ## Отправить .env.prod GlitchTip на сервер
-	scp -P $(PORT) glitchtip/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/glitchtip/.env
+	$(call check-deploy,glitchtip)
 
 deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
-	scp -P $(PORT) tiredofit/.env.prod $(HOST):$(DOCKER_SERVER_PATH)/tiredofit/.env
+	$(call check-deploy,tiredofit)
 
-deploy-rclone: ## Отправить rclone.conf на сервер
-	$(MAKE) -C rclone deploy
+deploy-rclone: ## Отправить .env.prod Rclone на сервер
+	$(call check-deploy,rclone)
 
 ##@ Архиватор
 archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName
@@ -136,6 +144,9 @@ tunnel: ## Открыть SSH-туннели к серверу
 	ssh -N -p $(PORT) $(foreach TUNNEL,$(TUNNELS),-L $(TUNNEL)) $(HOST)
 
 ##@ hex
+
+hex-16: ## Сгенерировать случайную строку из 8 байт
+	openssl rand -hex 8
 
 hex-16: ## Сгенерировать случайную строку из 16 байт
 	openssl rand -hex 16
