@@ -1,9 +1,9 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit
+.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit rclone mail vpn
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
-.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone
+.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn
 .PHONY: archive unarchive clear-mac-copy hosts tunnel hex-32 hex-64 push
 
 TUNNELS = $(T_CENTRIFUGO_WS) $(T_CENTRIFUGO_UI) $(T_MARIADB) $(T_PMA) $(T_GLITCHTIP) \
@@ -27,7 +27,7 @@ env: ## Безопасно скопировать .env из example
 
 ##@ Инициализация
 
-init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit ## Инициализировать все сервисы
+init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit rclone mail vpn ## Инициализировать все сервисы
 
 define check-env
 	@if [ -f $(1)/.env ]; then \
@@ -73,9 +73,18 @@ glitchtip: ## Инициализировать GlitchTip
 tiredofit: ## Инициализировать TiredOfIt DB Backup
 	$(call check-env,tiredofit)
 
+rclone: ## Инициализировать Rclone
+	$(call check-env,rclone)
+
+mail: ## Инициализировать Mail
+	$(call check-env,mail)
+
+vpn: ## Инициализировать VPN
+	$(call check-env,vpn)
+
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone ## Отправить production-конфиги на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn ## Отправить production-конфиги на сервер
 
 define check-deploy
 	@if [ -f $(1)/.env.prod ]; then \
@@ -123,6 +132,12 @@ deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
 
 deploy-rclone: ## Отправить .env.prod Rclone на сервер
 	$(call check-deploy,rclone)
+
+deploy-mail: ## Отправить .env.prod Mail на сервер
+	$(call check-deploy,mail)
+
+deploy-vpn: ## Отправить .env.prod VPN на сервер
+	$(call check-deploy,vpn)
 
 ##@ Архиватор
 archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName
