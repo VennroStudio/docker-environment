@@ -13,10 +13,8 @@
 127.0.0.1       pma.local
 
 127.0.0.1       web.rustfs.local
-127.0.0.1       api.rustfs.local
 
 127.0.0.1       web.redis.local
-127.0.0.1       api.redis.local
 
 127.0.0.1       api.centrifugo.local
 127.0.0.1       ws.centrifugo.local
@@ -38,10 +36,8 @@
 127.0.0.1       pma.server
 
 127.0.0.1       web.rustfs.server
-127.0.0.1       api.rustfs.server
 
 127.0.0.1       web.redis.server
-127.0.0.1       api.redis.server
 
 127.0.0.1       api.centrifugo.server
 
