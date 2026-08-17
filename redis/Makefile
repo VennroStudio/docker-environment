@@ -29,7 +29,7 @@ acl: env ## Сгенерировать users.acl из .env
 	else \
 		printf 'user %s on >%s ~* &* +@all\nuser default off\n' "$$REDIS_USER" "$$REDIS_PASSWORD" > users.acl; \
 	fi
-	@chmod 600 users.acl
+	@chmod 640 users.acl
 
 ##@ Сеть
 
