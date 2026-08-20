@@ -7,10 +7,12 @@ NPM_CONTAINER ?= nginx-container
 NPM_CERT ?=
 DOMAIN_NAME ?= $(DOMAIN)
 MODE ?= create
-REALLY ?= false
-WILDCARD ?= false
-EXPORT_ARGS ?=
-IMPORT_FILE ?=
+DELETE_FLAGS ?=
+ALIAS_FLAGS ?=
+CMD ?=
+MAILU = docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu
+EMAIL_LOCALPART = $(firstword $(subst @, ,$(EMAIL)))
+EMAIL_DOMAIN = $(word 2,$(subst @, ,$(EMAIL)))
 ELASTIC2022_VERSION ?= $(shell sed -n '1p' templates/roundcube/skins/elastic2022.version 2>/dev/null || printf '1.7.1')
 ELASTIC2022_TAG := $(patsubst v%,%,$(ELASTIC2022_VERSION))
 ELASTIC2022_ARCHIVE := /tmp/roundcube-elastic2022-$(ELASTIC2022_TAG).tar.gz
@@ -24,9 +26,9 @@ ELASTIC2022_VERSION_FILE := templates/roundcube/skins/elastic2022.version
 .PHONY: elastic2022-update elastic2022-download elastic2022-extract elastic2022-write-version
 .PHONY: docker-up docker-down docker-pull logs ps config subnet
 .PHONY: npm-certs npm-cert-copy npm-cert-install cert-reload cert-check
-.PHONY: mailu-config-export mailu-config-import mailu-dns mailu-domains mailu-users mailu-aliases
+.PHONY: mailu mailu-dns mailu-domains mailu-users mailu-aliases
 .PHONY: mailu-domain-create mailu-admin-create mailu-user-create mailu-password
-.PHONY: mailu-user-delete mailu-alias-create mailu-alias-delete mailu-setlimits mailu-setmanager
+.PHONY: mailu-user-delete mailu-alias-create mailu-alias-delete
 
 ##@ Помощь
 
@@ -103,15 +105,11 @@ subnet: ## Показать подсеть Docker-сети proxy
 npm-certs: ## Показать сертификаты NPM, NPM_CONTAINER=nginx-container
 	@docker exec "$(NPM_CONTAINER)" sh -c 'for dir in $$(ls /etc/letsencrypt/live); do if [ -f "/etc/letsencrypt/live/$$dir/cert.pem" ]; then echo "=== $$dir ==="; openssl x509 -in "/etc/letsencrypt/live/$$dir/cert.pem" -noout -subject; fi; done'
 
-npm-cert-copy: ## Скопировать сертификат NPM в Mailu, NPM_CERT=npm-18 NPM_CONTAINER=nginx-container
-	@test -n "$(NPM_CERT)" || (echo "Передай NPM_CERT, пример: make npm-cert-copy NPM_CERT=npm-18"; exit 1)
+npm-cert-copy: ## Скопировать сертификат NPM в Mailu, NPM_CERT=npm-18
 	@mkdir -p certs
-	@docker exec "$(NPM_CONTAINER)" test -f "/etc/letsencrypt/live/$(NPM_CERT)/fullchain.pem"
-	@docker exec "$(NPM_CONTAINER)" test -f "/etc/letsencrypt/live/$(NPM_CERT)/privkey.pem"
 	@docker exec "$(NPM_CONTAINER)" cat "/etc/letsencrypt/live/$(NPM_CERT)/fullchain.pem" > certs/cert.pem
 	@docker exec "$(NPM_CONTAINER)" cat "/etc/letsencrypt/live/$(NPM_CERT)/privkey.pem" > certs/key.pem
 	@chmod 600 certs/key.pem
-	@echo "Сертификат $(NPM_CERT) скопирован в certs/cert.pem и certs/key.pem"
 
 npm-cert-install: npm-cert-copy cert-reload ## Скопировать сертификат NPM и перезагрузить TLS, NPM_CERT=npm-18
 
@@ -120,82 +118,42 @@ cert-reload: ## Перезагрузить TLS в front после замены 
 	@docker compose -f $(COMPOSE_FILE) exec -T front doveadm reload
 
 cert-check: ## Проверить текущий сертификат Mailu в certs/cert.pem
-	@test -f certs/cert.pem || (echo "certs/cert.pem не найден"; exit 1)
 	@openssl x509 -in certs/cert.pem -noout -subject -issuer -dates
 
 ##@ Mailu CLI
 
-mailu-config-export: ## Экспорт конфигурации, EXPORT_ARGS='--dns domain user'
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-export $(EXPORT_ARGS)
+mailu: ## Выполнить любую Mailu CLI команду, CMD='config-export user'
+	@$(MAILU) $(CMD)
 
-mailu-config-import: ## Импорт конфигурации, IMPORT_FILE=backup.yml
-	@test -n "$(IMPORT_FILE)" || (echo "Передай IMPORT_FILE, пример: make mailu-config-import IMPORT_FILE=backup.yml"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-import < "$(IMPORT_FILE)"
-
-mailu-dns: ## Показать DNS-записи Mailu, EXPORT_ARGS='domain.dns_mx domain.dns_spf'
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-export --dns $(EXPORT_ARGS)
+mailu-dns: ## Показать основные DNS-записи Mailu
+	@$(MAILU) config-export --dns domain.dns_mx domain.dns_spf domain.dns_dkim domain.dns_dmarc
 
 mailu-domains: ## Показать домены Mailu
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-export domain
+	@$(MAILU) config-export domain
 
 mailu-users: ## Показать пользователей Mailu
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-export user
+	@$(MAILU) config-export user
 
 mailu-aliases: ## Показать алиасы Mailu
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu config-export alias
+	@$(MAILU) config-export alias
 
 mailu-domain-create: ## Создать домен, DOMAIN_NAME=domain.ru
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME, пример: make mailu-domain-create DOMAIN_NAME=domain.ru"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu domain "$(DOMAIN_NAME)"
+	@$(MAILU) domain "$(DOMAIN_NAME)"
 
-mailu-admin-create: ## Создать/обновить админа, LOCALPART=postmaster DOMAIN_NAME=domain.ru PASSWORD='pass' MODE=create|update|ifmissing
-	@test -n "$(LOCALPART)" || (echo "Передай LOCALPART, пример: make mailu-admin-create LOCALPART=postmaster DOMAIN_NAME=domain.ru PASSWORD='pass'"; exit 1)
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$${PASSWORD}" || (echo "Передай PASSWORD"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu admin --mode "$(MODE)" "$(LOCALPART)" "$(DOMAIN_NAME)" "$${PASSWORD}"
+mailu-admin-create: ## Создать/обновить админа, EMAIL=postmaster@domain.ru PASSWORD='pass' MODE=create|update|ifmissing
+	@$(MAILU) admin --mode "$(MODE)" "$(EMAIL_LOCALPART)" "$(EMAIL_DOMAIN)" "$(PASSWORD)"
 
-mailu-user-create: ## Создать пользователя, LOCALPART=user DOMAIN_NAME=domain.ru PASSWORD='pass'
-	@test -n "$(LOCALPART)" || (echo "Передай LOCALPART, пример: make mailu-user-create LOCALPART=user DOMAIN_NAME=domain.ru PASSWORD='pass'"; exit 1)
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$${PASSWORD}" || (echo "Передай PASSWORD"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu user "$(LOCALPART)" "$(DOMAIN_NAME)" "$${PASSWORD}"
+mailu-user-create: ## Создать пользователя, EMAIL=user@domain.ru PASSWORD='pass'
+	@$(MAILU) user "$(EMAIL_LOCALPART)" "$(EMAIL_DOMAIN)" "$(PASSWORD)"
 
-mailu-password: ## Сменить пароль, LOCALPART=user DOMAIN_NAME=domain.ru PASSWORD='pass'
-	@test -n "$(LOCALPART)" || (echo "Передай LOCALPART, пример: make mailu-password LOCALPART=user DOMAIN_NAME=domain.ru PASSWORD='pass'"; exit 1)
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$${PASSWORD}" || (echo "Передай PASSWORD"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu password "$(LOCALPART)" "$(DOMAIN_NAME)" "$${PASSWORD}"
+mailu-password: ## Сменить пароль, EMAIL=user@domain.ru PASSWORD='pass'
+	@$(MAILU) password "$(EMAIL_LOCALPART)" "$(EMAIL_DOMAIN)" "$(PASSWORD)"
 
-mailu-user-delete: ## Отключить пользователя, EMAIL=user@domain.ru REALLY=true удалит полностью
-	@test -n "$(EMAIL)" || (echo "Передай EMAIL, пример: make mailu-user-delete EMAIL=user@domain.ru"; exit 1)
-	@if [ "$(REALLY)" = "true" ]; then \
-		docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu user-delete "$(EMAIL)" --really; \
-	else \
-		docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu user-delete "$(EMAIL)"; \
-	fi
+mailu-user-delete: ## Отключить пользователя, EMAIL=user@domain.ru DELETE_FLAGS='--really' удалит полностью
+	@$(MAILU) user-delete "$(EMAIL)" $(DELETE_FLAGS)
 
-mailu-alias-create: ## Создать алиас, LOCALPART=info DOMAIN_NAME=domain.ru DESTINATION='user@domain.ru' WILDCARD=true
-	@test -n "$(LOCALPART)" || (echo "Передай LOCALPART, пример: make mailu-alias-create LOCALPART=info DOMAIN_NAME=domain.ru DESTINATION='user@domain.ru'"; exit 1)
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$(DESTINATION)" || (echo "Передай DESTINATION"; exit 1)
-	@if [ "$(WILDCARD)" = "true" ]; then \
-		docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu alias "$(LOCALPART)" "$(DOMAIN_NAME)" "$(DESTINATION)" --wildcard; \
-	else \
-		docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu alias "$(LOCALPART)" "$(DOMAIN_NAME)" "$(DESTINATION)"; \
-	fi
+mailu-alias-create: ## Создать алиас, EMAIL=info@domain.ru DESTINATION='user@domain.ru' ALIAS_FLAGS='--wildcard'
+	@$(MAILU) alias "$(EMAIL_LOCALPART)" "$(EMAIL_DOMAIN)" "$(DESTINATION)" $(ALIAS_FLAGS)
 
 mailu-alias-delete: ## Удалить алиас, EMAIL=info@domain.ru
-	@test -n "$(EMAIL)" || (echo "Передай EMAIL, пример: make mailu-alias-delete EMAIL=info@domain.ru"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu alias-delete "$(EMAIL)"
-
-mailu-setlimits: ## Лимиты домена, DOMAIN_NAME=domain.ru MAX_USERS=-1 MAX_ALIASES=-1 MAX_QUOTA_BYTES=0
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$(MAX_USERS)" || (echo "Передай MAX_USERS"; exit 1)
-	@test -n "$(MAX_ALIASES)" || (echo "Передай MAX_ALIASES"; exit 1)
-	@test -n "$(MAX_QUOTA_BYTES)" || (echo "Передай MAX_QUOTA_BYTES"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu setlimits "$(DOMAIN_NAME)" "$(MAX_USERS)" "$(MAX_ALIASES)" "$(MAX_QUOTA_BYTES)"
-
-mailu-setmanager: ## Сделать пользователя менеджером домена, DOMAIN_NAME=domain.ru LOCALPART=user
-	@test -n "$(DOMAIN_NAME)" || (echo "Передай DOMAIN_NAME"; exit 1)
-	@test -n "$(LOCALPART)" || (echo "Передай LOCALPART"; exit 1)
-	@docker compose -f $(COMPOSE_FILE) exec -T admin flask mailu setmanager "$(DOMAIN_NAME)" "$(LOCALPART)"
+	@$(MAILU) alias-delete "$(EMAIL)"

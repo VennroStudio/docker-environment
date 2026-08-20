@@ -84,50 +84,38 @@ make cert-reload
 
 ## Управление
 
-Переменные после команды `make` подставляются внутрь Docker-команды.
+Главный сценарий: создать почтовый ящик.
 
-Пример:
-
-```sh
-make mailu-config-export EXPORT_ARGS='--dns domain user'
-```
-
-Внутри выполнится:
-
-```sh
-docker compose -f docker-compose-mail.yml exec -T admin flask mailu config-export --dns domain user
-```
-
-`EXPORT_ARGS` здесь просто добавляется в конец команды `flask mailu config-export`.
-
-Создать домен:
+Сначала создай домен:
 
 ```sh
 make mailu-domain-create DOMAIN_NAME=example.ru
 ```
 
+Потом создай пользователя:
+
+```sh
+make mailu-user-create EMAIL=user@example.ru PASSWORD='strong-password'
+```
+
+`EMAIL` всегда указывается целиком: `имя@домен`.
+
 Создать администратора:
 
 ```sh
-make mailu-admin-create LOCALPART=postmaster DOMAIN_NAME=example.ru PASSWORD='strong-password'
+make mailu-admin-create EMAIL=postmaster@example.ru PASSWORD='strong-password'
 ```
 
 Обновить пароль администратора:
 
 ```sh
-make mailu-admin-create LOCALPART=postmaster DOMAIN_NAME=example.ru PASSWORD='new-password' MODE=update
-```
-
-Создать обычного пользователя:
-
-```sh
-make mailu-user-create LOCALPART=user DOMAIN_NAME=example.ru PASSWORD='strong-password'
+make mailu-admin-create EMAIL=postmaster@example.ru PASSWORD='new-password' MODE=update
 ```
 
 Сменить пароль пользователя:
 
 ```sh
-make mailu-password LOCALPART=user DOMAIN_NAME=example.ru PASSWORD='new-password'
+make mailu-password EMAIL=user@example.ru PASSWORD='new-password'
 ```
 
 Отключить пользователя:
@@ -139,31 +127,25 @@ make mailu-user-delete EMAIL=user@example.ru
 Удалить пользователя полностью:
 
 ```sh
-make mailu-user-delete EMAIL=user@example.ru REALLY=true
+make mailu-user-delete EMAIL=user@example.ru DELETE_FLAGS='--really'
 ```
 
 Создать алиас:
 
 ```sh
-make mailu-alias-create LOCALPART=info DOMAIN_NAME=example.ru DESTINATION='user@example.ru'
+make mailu-alias-create EMAIL=info@example.ru DESTINATION='user@example.ru'
+```
+
+Создать wildcard-алиас:
+
+```sh
+make mailu-alias-create EMAIL=anything@example.ru DESTINATION='user@example.ru' ALIAS_FLAGS='--wildcard'
 ```
 
 Удалить алиас:
 
 ```sh
 make mailu-alias-delete EMAIL=info@example.ru
-```
-
-Экспорт конфигурации:
-
-```sh
-make mailu-config-export
-```
-
-Экспорт DNS-записей:
-
-```sh
-make mailu-dns EXPORT_ARGS='domain.dns_mx domain.dns_spf'
 ```
 
 Показать домены, пользователей и алиасы:
@@ -174,10 +156,30 @@ make mailu-users
 make mailu-aliases
 ```
 
-Импорт конфигурации:
+Показать DNS-записи:
 
 ```sh
-make mailu-config-import IMPORT_FILE=backup.yml
+make mailu-dns
+```
+
+Для редких команд есть универсальный вход в Mailu CLI:
+
+```sh
+make mailu CMD='config-export user'
+```
+
+Реально это выполнит:
+
+```sh
+docker compose -f docker-compose-mail.yml exec -T admin flask mailu config-export user
+```
+
+Еще примеры:
+
+```sh
+make mailu CMD='config-export'
+make mailu CMD='config-export --dns domain.dns_mx domain.dns_spf'
+make mailu CMD='setlimits example.ru -1 -1 0'
 ```
 
 ## Roundcube
