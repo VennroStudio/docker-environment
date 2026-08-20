@@ -5,7 +5,7 @@ services:
     image: redis:alpine
     restart: always
     volumes:
-      - "/mailu/redis:/data"
+      - "./data/redis:/data"
     depends_on:
       - resolver
     dns:
@@ -36,8 +36,8 @@ services:
         aliases:
           - mailu-front
     volumes:
-      - "/mailu/certs:/certs"
-      - "/mailu/overrides/nginx:/overrides:ro"
+      - "./certs:/certs"
+      - "./overrides/nginx:/overrides:ro"
     depends_on:
       - resolver
     dns:
@@ -64,8 +64,8 @@ services:
       options:
         tag: mailu-admin
     volumes:
-      - "/mailu/data:/data"
-      - "/mailu/dkim:/dkim"
+      - "./data/admin:/data"
+      - "./data/dkim:/dkim"
     depends_on:
       - redis
       - resolver
@@ -81,8 +81,8 @@ services:
       options:
         tag: mailu-imap
     volumes:
-      - "/mailu/mail:/mail"
-      - "/mailu/overrides/dovecot:/overrides:ro"
+      - "./data/mail:/mail"
+      - "./overrides/dovecot:/overrides:ro"
     networks:
       - default
     depends_on:
@@ -100,8 +100,8 @@ services:
       options:
         tag: mailu-smtp
     volumes:
-      - "/mailu/mailqueue:/queue"
-      - "/mailu/overrides/postfix:/overrides:ro"
+      - "./data/mailqueue:/queue"
+      - "./overrides/postfix:/overrides:ro"
     depends_on:
       - front
       - resolver
@@ -123,7 +123,6 @@ services:
     dns:
       - 192.168.203.254
 
-
   antispam:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}rspamd:${MAILU_VERSION:-2024.06}
     hostname: antispam
@@ -138,8 +137,8 @@ services:
       - oletools
       - clamav
     volumes:
-      - "/mailu/filter:/var/lib/rspamd"
-      - "/mailu/overrides/rspamd:/overrides:ro"
+      - "./data/filter:/var/lib/rspamd"
+      - "./overrides/rspamd:/overrides:ro"
     depends_on:
       - front
       - redis
@@ -149,7 +148,6 @@ services:
     dns:
       - 192.168.203.254
 
-  # Optional services
   antivirus:
     image: clamav/clamav-debian:1.4
     restart: always
@@ -160,7 +158,7 @@ services:
     networks:
       - clamav
     volumes:
-      - "/mailu/clamav:/var/lib/clamav"
+      - "./data/clamav:/var/lib/clamav"
     healthcheck:
       test: ["CMD-SHELL", "kill -0 `cat /tmp/clamd.pid` && kill -0 `cat /tmp/freshclam.pid`"]
       interval: 10s
@@ -176,7 +174,7 @@ services:
       options:
         tag: mailu-webdav
     volumes:
-      - "/mailu/dav:/data"
+      - "./data/dav:/data"
     networks:
       - radicale
 
@@ -189,7 +187,7 @@ services:
       options:
         tag: mailu-fetchmail
     volumes:
-      - "/mailu/data/fetchmail:/data"
+      - "./data/fetchmail:/data"
     depends_on:
       - admin
       - smtp
@@ -198,7 +196,6 @@ services:
     dns:
       - 192.168.203.254
 
-  # Webmail
   webmail:
     image: ${DOCKER_ORG:-ghcr.io/mailu}/${DOCKER_PREFIX:-}webmail:${MAILU_VERSION:-2024.06}
     restart: always
@@ -208,8 +205,8 @@ services:
       options:
         tag: mailu-webmail
     volumes:
-      - "/mailu/webmail:/data"
-      - "/mailu/overrides/roundcube:/overrides:ro"
+      - "./data/webmail:/data"
+      - "./overrides/roundcube:/overrides:ro"
     networks:
       - webmail
     depends_on:
