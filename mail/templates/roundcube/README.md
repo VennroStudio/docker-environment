@@ -2,18 +2,20 @@
 
 Здесь лежат настройки и скины Roundcube для Mailu.
 
-## Workbench
+## Elastic2022
 
 Скин установлен из релизного архива:
 
 ```sh
-./scripts/update-roundcube-workbench.sh v1.2.1
+make elastic2022-download ELASTIC2022_VERSION=1.7.1
+make elastic2022-extract ELASTIC2022_VERSION=1.7.1
+make elastic2022-write-version ELASTIC2022_VERSION=1.7.1
 ```
 
 Для будущего обновления укажи новую версию:
 
 ```sh
-make workbench-update WORKBENCH_VERSION=v1.2.2
+make elastic2022-update ELASTIC2022_VERSION=1.7.2
 ```
 
 После обновления перезапусти веб-почту:

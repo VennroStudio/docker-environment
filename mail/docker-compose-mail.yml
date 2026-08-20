@@ -209,7 +209,7 @@ services:
     volumes:
       - "./data/webmail:/data"
       - "./templates/roundcube/config:/overrides:ro"
-      - "./templates/roundcube/skins/workbench:/var/www/roundcube/skins/workbench:ro"
+      - "./templates/roundcube/skins/elastic2022:/var/www/roundcube/skins/elastic2022:ro"
     networks:
       - webmail
     depends_on:

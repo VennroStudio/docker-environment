@@ -1,7 +1,7 @@
 <?php
 
 // Скин почты после входа.
-$config['skin'] = 'workbench';
+$config['skin'] = 'elastic2022';
 
-// Workbench основной, Elastic оставлен как запасной вариант.
-$config['skins_allowed'] = ['workbench', 'elastic'];
+// Elastic2022 основной, Elastic оставлен как запасной вариант.
+$config['skins_allowed'] = ['elastic2022', 'elastic'];

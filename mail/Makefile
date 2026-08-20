@@ -3,8 +3,17 @@ include .env.example
 export
 
 COMPOSE_FILE ?= docker-compose-mail.yml
+ELASTIC2022_VERSION ?= $(shell sed -n '1p' templates/roundcube/skins/elastic2022.version 2>/dev/null || printf '1.7.1')
+ELASTIC2022_TAG := $(patsubst v%,%,$(ELASTIC2022_VERSION))
+ELASTIC2022_ARCHIVE := /tmp/roundcube-elastic2022-$(ELASTIC2022_TAG).tar.gz
+ELASTIC2022_EXTRACT_DIR := /tmp/roundcube-elastic2022-$(ELASTIC2022_TAG)
+ELASTIC2022_URL := https://github.com/seb1k/Elastic2022/archive/refs/tags/$(ELASTIC2022_TAG).tar.gz
+ELASTIC2022_SKINS_DIR := templates/roundcube/skins
+ELASTIC2022_SKIN_DIR := templates/roundcube/skins/elastic2022
+ELASTIC2022_VERSION_FILE := templates/roundcube/skins/elastic2022.version
 
-.PHONY: help env network init up down restart workbench-update
+.PHONY: help env network init up down restart
+.PHONY: elastic2022-update elastic2022-download elastic2022-extract elastic2022-write-version
 .PHONY: docker-up docker-down docker-pull logs ps config subnet
 
 ##@ Помощь
@@ -33,8 +42,24 @@ init: env network docker-pull docker-up ## Инициализировать Mail
 up: network docker-up ## Поднять Mail
 down: docker-down ## Остановить и удалить Mail
 restart: down up ## Перезапустить Mail
-workbench-update: ## Обновить скин Roundcube Workbench
-	./scripts/update-roundcube-workbench.sh $(WORKBENCH_VERSION)
+elastic2022-update: ## Обновить скин Roundcube Elastic2022
+	$(MAKE) elastic2022-download ELASTIC2022_VERSION=$(ELASTIC2022_TAG)
+	$(MAKE) elastic2022-extract ELASTIC2022_VERSION=$(ELASTIC2022_TAG)
+	$(MAKE) elastic2022-write-version ELASTIC2022_VERSION=$(ELASTIC2022_TAG)
+
+elastic2022-download: ## Скачать архив Elastic2022
+	curl -fsSL "$(ELASTIC2022_URL)" -o "$(ELASTIC2022_ARCHIVE)"
+
+elastic2022-extract: ## Распаковать архив Elastic2022
+	rm -rf "$(ELASTIC2022_EXTRACT_DIR)"
+	mkdir -p "$(ELASTIC2022_EXTRACT_DIR)" "$(ELASTIC2022_SKIN_DIR)"
+	tar -xzf "$(ELASTIC2022_ARCHIVE)" -C "$(ELASTIC2022_EXTRACT_DIR)" --strip-components=1
+	test -f "$(ELASTIC2022_EXTRACT_DIR)/meta.json"
+	rsync -a --delete --exclude '/.github/' --exclude '/img/' "$(ELASTIC2022_EXTRACT_DIR)/" "$(ELASTIC2022_SKIN_DIR)/"
+
+elastic2022-write-version: ## Записать версию Elastic2022
+	mkdir -p "$(ELASTIC2022_SKINS_DIR)"
+	printf '%s\n' "$(ELASTIC2022_TAG)" > "$(ELASTIC2022_VERSION_FILE)"
 
 docker-up: ## Поднять контейнеры
 	docker compose -f $(COMPOSE_FILE) up -d
