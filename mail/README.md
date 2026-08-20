@@ -217,3 +217,102 @@ make logs
 ```
 
 `make config` проверяет compose-синтаксис и итоговую сборку конфига. Он не проверяет DNS, открытые порты, сертификаты, доставку писем и вход в веб-интерфейс.
+
+## Возможные ошибки
+
+### Письма с вложениями не доходят
+
+Если обычные письма доходят, а письма с вложениями нет, сначала смотри логи:
+
+```sh
+docker compose -f docker-compose-mail.yml logs -f --tail=100 smtp antispam antivirus
+```
+
+Типовой признак проблемы с антивирусом:
+
+```text
+milter-reject: END-OF-MESSAGE ... 4.7.1 Please retry later (anti-virus/oletools not ready)
+FreshClam previously received error code 429 or 403 from the ClamAV Content Delivery Network (CDN)
+You are still on cool-down until after: 2026-08-21 08:23:37
+No supported database files found in /var/lib/clamav
+Failed to start clamd
+Socket for clamd not found
+```
+
+Что это значит:
+
+- `4.7.1 Please retry later` - временный отказ, нормальный почтовый сервер отправителя попробует доставить письмо позже.
+- `429/403` и `cool-down` - FreshClam слишком часто обращался к CDN ClamAV или CDN временно ограничил этот IP.
+- `No supported database files found` - у ClamAV нет локальных баз, поэтому `clamd` не стартует.
+- Время в логах контейнера обычно в UTC. Для Красноярска прибавь 7 часов: `08:23:37 UTC` = `15:23:37` по Красноярску.
+
+Антивирус отключать не надо. Можно один раз скачать базы на локальной машине и положить их в volume Mailu на сервере.
+
+На сервере создай папку для баз:
+
+```sh
+cd /home/<ssh-user>/docker-environment/mail
+mkdir -p data/clamav
+```
+
+На локальной машине скачай базы ClamAV:
+
+```sh
+mkdir -p /tmp/clamav-db
+
+docker run --rm \
+  --entrypoint freshclam \
+  -v /tmp/clamav-db:/var/lib/clamav \
+  clamav/clamav-debian:1.4 \
+  --datadir=/var/lib/clamav --foreground --stdout
+```
+
+Проверь, что появились базы:
+
+```sh
+ls -lh /tmp/clamav-db
+```
+
+Должны быть файлы:
+
+```text
+bytecode.cvd
+daily.cvd
+main.cvd
+```
+
+`freshclam.dat` копировать не нужно.
+
+Скопируй базы на сервер:
+
+```sh
+scp -P <ssh-port> /tmp/clamav-db/*.cvd <ssh-user>@<server>:/home/<ssh-user>/docker-environment/mail/data/clamav/
+```
+
+После копирования можно удалить временные файлы с локальной машины:
+
+```sh
+rm -rf /tmp/clamav-db
+```
+
+На сервере перезапусти только антивирус:
+
+```sh
+cd /home/<ssh-user>/docker-environment/mail
+docker compose -f docker-compose-mail.yml restart antivirus
+docker compose -f docker-compose-mail.yml logs -f --tail=100 antivirus
+```
+
+Успешный признак:
+
+```text
+socket found, clamd started.
+```
+
+После этого перезапусти только сервисы, которые проверяют письмо через антивирус:
+
+```sh
+docker compose -f docker-compose-mail.yml restart antispam smtp
+```
+
+Все контейнеры Mailu перезапускать не нужно. После успешного запуска `clamd` отправь тестовое письмо с вложением еще раз.
