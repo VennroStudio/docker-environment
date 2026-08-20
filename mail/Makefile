@@ -4,7 +4,7 @@ export
 
 COMPOSE_FILE ?= docker-compose-mail.yml
 
-.PHONY: help env network init up down restart
+.PHONY: help env network init up down restart workbench-update
 .PHONY: docker-up docker-down docker-pull logs ps config subnet
 
 ##@ Помощь
@@ -33,6 +33,8 @@ init: env network docker-pull docker-up ## Инициализировать Mail
 up: network docker-up ## Поднять Mail
 down: docker-down ## Остановить и удалить Mail
 restart: down up ## Перезапустить Mail
+workbench-update: ## Обновить скин Roundcube Workbench
+	./scripts/update-roundcube-workbench.sh $(WORKBENCH_VERSION)
 
 docker-up: ## Поднять контейнеры
 	docker compose -f $(COMPOSE_FILE) up -d

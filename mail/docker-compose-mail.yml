@@ -208,7 +208,8 @@ services:
         tag: mailu-webmail
     volumes:
       - "./data/webmail:/data"
-      - "./overrides/roundcube:/overrides:ro"
+      - "./templates/roundcube/config:/overrides:ro"
+      - "./templates/roundcube/skins/workbench:/var/www/roundcube/skins/workbench:ro"
     networks:
       - webmail
     depends_on:
