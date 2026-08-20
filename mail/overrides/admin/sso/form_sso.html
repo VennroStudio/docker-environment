@@ -1,0 +1,38 @@
+{%- extends "base_sso.html" %}
+
+{%- block title %}Вход в почту{%- endblock %}
+
+{%- block content %}
+<div class="card">
+  <div class="card-body login-card-body">
+    <p class="login-box-msg">Введите данные почтового ящика</p>
+
+    <form method="post" role="form">
+      {{ form.hidden_tag() }}
+      {{ macros.form_errors(form) }}
+
+      <div class="input-group mb-3">
+        {{ form.email(class_="form-control", placeholder="Электронная почта", autocomplete="username") }}
+        <div class="input-group-append">
+          <div class="input-group-text">
+            <span class="fas fa-envelope" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+      {{ macros.form_field_errors(form.email) }}
+
+      <div class="input-group mb-3">
+        {{ form.pw(class_="form-control", placeholder="Пароль", autocomplete="current-password") }}
+        <div class="input-group-append">
+          <div class="input-group-text">
+            <span class="fas fa-lock" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+      {{ macros.form_field_errors(form.pw) }}
+
+      {{ form.submitWebmail(class_="btn btn-primary btn-block", value="Войти в почту") }}
+    </form>
+  </div>
+</div>
+{%- endblock %}

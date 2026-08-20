@@ -65,6 +65,9 @@ services:
     volumes:
       - "./data/admin:/data"
       - "./data/dkim:/dkim"
+      - "./overrides/admin/sso/base_sso.html:/app/mailu/sso/templates/base_sso.html:ro"
+      - "./overrides/admin/sso/form_sso.html:/app/mailu/sso/templates/form_sso.html:ro"
+      - "./overrides/admin/sso/sidebar_sso.html:/app/mailu/sso/templates/sidebar_sso.html:ro"
     depends_on:
       - redis
       - resolver
