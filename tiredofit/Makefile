@@ -4,7 +4,7 @@ export
 
 COMPOSE_FILE ?= docker-compose-tiredofit.yml
 
-.PHONY: help env volume-permissions network init up down restart
+.PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: backup backup-job restore restore-file
 
@@ -23,11 +23,6 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
-volume-permissions: env ## Создать backup/logs и выставить права для загрузки файлов
-	sudo mkdir -p backup logs
-	sudo chown -R $$(id -u):$$(id -g) backup logs
-	sudo chmod -R u+rwX,g+rwX,o-rwx backup logs
-
 ##@ Сеть
 
 network: env ## Создать внешнюю сеть, если она ещё не существует
@@ -35,7 +30,7 @@ network: env ## Создать внешнюю сеть, если она ещё �
 
 ##@ TiredOfIt DB Backup
 
-init: env volume-permissions network docker-pull docker-up ## Инициализировать backup-контейнер
+init: env network docker-pull docker-up ## Инициализировать backup-контейнер
 up: env network docker-up ## Поднять backup-контейнер
 down: docker-down ## Остановить и удалить backup-контейнер
 restart: down up ## Перезапустить backup-контейнер
