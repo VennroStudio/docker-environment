@@ -4,7 +4,7 @@ export
 .PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit rclone mail vpn
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn
-.PHONY: archive unarchive clear-mac-copy hosts tunnel hex-32 hex-64 push
+.PHONY: archive unarchive clear-mac-copy upload hosts tunnel hex-32 hex-64 push
 
 TUNNELS = $(T_CENTRIFUGO_WS) $(T_CENTRIFUGO_API) $(T_MARIADB) $(T_PMA) $(T_GLITCHTIP) \
 $(T_LIVEKIT) $(T_NGINX) $(T_RUSTFS_API) $(T_RUSTFS_WEB) $(T_PORTAINER) $(T_REDIS) \
@@ -149,6 +149,11 @@ unarchive: ## Разархивирование для формата data-DD-MM-
 
 clear-mac-copy: ## Очистка файлов MAC в архиве
 	find . -type f -name '._*' -delete
+
+##@ Файлы
+
+upload: ## Отправить файл на сервер, FILE=path/to/file SERVICE=tiredofit REMOTE_DIR=backup NAME=dump.sql.gz
+	scp -P $(PORT) "$(FILE)" "$(HOST):$(DOCKER_SERVER_PATH)/$(SERVICE)/$(REMOTE_DIR)/$(NAME)"
 
 ##@ Hosts
 hosts: ## Добавить локальный домен
