@@ -3,10 +3,17 @@ include .env.example
 export
 
 COMPOSE_FILE ?= docker-compose-mariadb.yml
+DB_NAME ?=
+DB_USER ?=
+DB_HOST ?= 172.18.0.1
+DB_PASSWORD ?=
+SQL ?=
+MARIADB_ROOT = docker compose -f $(COMPOSE_FILE) exec -T -e MYSQL_PWD="$(MYSQL_ROOT_PASSWORD)" mariadb mariadb -uroot
 
 .PHONY: help env cnf network init up down restart
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: volume-inspect volume-rm
+.PHONY: mariadb-sql db-users db-create db-user-create db-grant db-user-grants db-user-drop db-app-create
 
 ##@ Помощь
 
@@ -70,3 +77,32 @@ volume-rm: ## Удалить хранилище (полная потеря да�
 
 config: ## Показать итоговый конфиг
 	docker compose -f $(COMPOSE_FILE) config
+
+##@ MariaDB CLI
+
+mariadb-sql: ## Выполнить SQL под root, пример: SQL='SHOW DATABASES;'
+	@$(MARIADB_ROOT) -e "$(SQL)"
+
+db-users: ## Показать пользователей MariaDB как пары user@host
+	@$(MARIADB_ROOT) -e "SELECT User, Host FROM mysql.user ORDER BY User, Host;"
+
+db-create: ## Создать БД, пример: DB_NAME=v-project
+	@$(MARIADB_ROOT) -e "CREATE DATABASE IF NOT EXISTS \`$(DB_NAME)\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+db-user-create: ## Создать/обновить пользователя user@host, пример: DB_USER=v-project DB_HOST=172.18.0.1 DB_PASSWORD='pass'
+	@$(MARIADB_ROOT) -e "CREATE USER IF NOT EXISTS '$(DB_USER)'@'$(DB_HOST)' IDENTIFIED BY '$(DB_PASSWORD)'; ALTER USER '$(DB_USER)'@'$(DB_HOST)' IDENTIFIED BY '$(DB_PASSWORD)';"
+
+db-grant: ## Дать user@host права только на БД, пример: DB_NAME=v-project DB_USER=v-project DB_HOST=172.18.0.1
+	@$(MARIADB_ROOT) -e "GRANT ALL PRIVILEGES ON \`$(DB_NAME)\`.* TO '$(DB_USER)'@'$(DB_HOST)';"
+
+db-user-grants: ## Показать права user@host, пример: DB_USER=v-project DB_HOST=172.18.0.1
+	@$(MARIADB_ROOT) -e "SHOW GRANTS FOR '$(DB_USER)'@'$(DB_HOST)';"
+
+db-user-drop: ## Удалить конкретного пользователя user@host, пример: DB_USER=vennro DB_HOST=172.18.0.11
+	@$(MARIADB_ROOT) -e "DROP USER '$(DB_USER)'@'$(DB_HOST)';"
+
+db-app-create: ## Создать БД, пользователя и права, пример: DB_NAME=v-project DB_USER=v-project DB_HOST=172.18.0.1 DB_PASSWORD='pass'
+	@$(MAKE) db-create DB_NAME="$(DB_NAME)"
+	@$(MAKE) db-user-create DB_USER="$(DB_USER)" DB_HOST="$(DB_HOST)" DB_PASSWORD="$(DB_PASSWORD)"
+	@$(MAKE) db-grant DB_NAME="$(DB_NAME)" DB_USER="$(DB_USER)" DB_HOST="$(DB_HOST)"
+	@$(MAKE) db-user-grants DB_USER="$(DB_USER)" DB_HOST="$(DB_HOST)"
