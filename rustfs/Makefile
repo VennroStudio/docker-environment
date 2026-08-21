@@ -4,7 +4,7 @@ export
 
 COMPOSE_FILE ?= docker-compose-rustfs.yml
 
-.PHONY: help env volume-permissions network init up down restart
+.PHONY: help env network init up down restart
 .PHONY: docker-up docker-down docker-pull docker-build logs ps config
 
 ##@ Помощь
@@ -22,17 +22,6 @@ help: ## Показать список команд
 env: ## Безопасно скопировать .env из example
 	@[ -f .env ] || cp .env.example .env
 
-volume-permissions: env ## Создать папку данных и выставить права для RustFS
-	@case "$(VOLUME)" in \
-		./*|../*|/*) \
-			SUDO=""; \
-			if [ "$$(id -u)" -ne 0 ]; then SUDO="sudo"; fi; \
-			$$SUDO mkdir -p "$(VOLUME)"; \
-			$$SUDO chown -R 10001:10001 "$(VOLUME)"; \
-			$$SUDO chmod -R u+rwX,g-rwx,o-rwx "$(VOLUME)"; \
-			;; \
-	esac
-
 ##@ Сеть
 
 network: env ## Создать внешнюю сеть, если она ещё не существует
@@ -40,8 +29,8 @@ network: env ## Создать внешнюю сеть, если она ещё �
 
 ##@ RustFS
 
-init: env volume-permissions network docker-down docker-pull docker-build docker-up ## Инициализировать проект
-up: volume-permissions network docker-up ## Поднять проект
+init: env network docker-down docker-pull docker-build docker-up ## Инициализировать проект
+up: network docker-up ## Поднять проект
 down: docker-down ## Удалить проект
 restart: down up ## Перезапустить проект
 
