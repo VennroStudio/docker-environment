@@ -36,7 +36,7 @@ network: env ## Создать внешнюю сеть, если она ещё �
 ##@ TiredOfIt DB Backup
 
 init: env volume-permissions network docker-pull docker-up ## Инициализировать backup-контейнер
-up: env volume-permissions network docker-up ## Поднять backup-контейнер
+up: env network docker-up ## Поднять backup-контейнер
 down: docker-down ## Остановить и удалить backup-контейнер
 restart: down up ## Перезапустить backup-контейнер
 
