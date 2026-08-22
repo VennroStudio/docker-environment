@@ -5,6 +5,9 @@ services:
     image: 'jc21/nginx-proxy-manager:latest'
     container_name: nginx-container
     restart: unless-stopped
+    environment:
+      PUID: ${NPM_PUID}
+      PGID: ${NPM_PGID}
     ports:
       - '80:80'
       - '443:443'
