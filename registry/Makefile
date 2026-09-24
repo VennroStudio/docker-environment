@@ -63,7 +63,7 @@ config: ## Показать итоговый конфиг
 
 ##@ Пользователи
 
-ui-auth: ## Получить REGISTRY_UI_AUTH из REGISTRY_USER/REGISTRY_PASSWORD, пример: make ui-auth
+ui-auth: ## Получить REGISTRY_UI_AUTH из REGISTRY_USER/REGISTRY_PASSWORD
 	@printf '%s' "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" | base64 | tr -d '\n'
 	@printf '\n'
 
