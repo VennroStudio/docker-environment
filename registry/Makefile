@@ -10,6 +10,7 @@ REGISTRY_CURL_PASS = $(if $(filter command line,$(origin PASS)),$(PASS),$${REGIS
 .PHONY: docker-up docker-down docker-pull logs ps config
 .PHONY: create-user add-user change-password list-users remove-user
 .PHONY: list-images list-tags storage-size
+.PHONY: ui-auth
 
 ##@ Помощь
 
@@ -61,6 +62,10 @@ config: ## Показать итоговый конфиг
 	docker compose -f $(COMPOSE_FILE) config
 
 ##@ Пользователи
+
+ui-auth: ## Получить REGISTRY_UI_AUTH из REGISTRY_USER/REGISTRY_PASSWORD, пример: make ui-auth
+	@printf '%s' "$${REGISTRY_USER}:$${REGISTRY_PASSWORD}" | base64 | tr -d '\n'
+	@printf '\n'
 
 create-user: env ## Создать основного пользователя Registry из REGISTRY_USER/REGISTRY_PASSWORD
 	@mkdir -p auth

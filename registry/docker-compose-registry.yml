@@ -19,6 +19,28 @@ services:
     networks:
       - network-name
 
+  a-registry:
+    image: ghcr.io/eznix86/docker-registry-ui:latest
+    container_name: a-registry-container
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${REGISTRY_UI_PORT}:3000"
+    environment:
+      REGISTRY_URL: http://registry:5000
+      REGISTRY_AUTH: ${REGISTRY_UI_AUTH}
+      SERVER_HOST: 0.0.0.0
+      DATABASE_URL: /app/data/ui.db
+    volumes:
+      - registry-ui-data:/app/data
+    depends_on:
+      - registry
+    networks:
+      - network-name
+
+volumes:
+  registry-ui-data:
+    name: ${REGISTRY_UI_VOLUME}
+
 networks:
   network-name:
     name: ${NETWORK}
