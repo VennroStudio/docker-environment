@@ -33,8 +33,8 @@ init: env network ## Скачать образы и запустить; пред
 	@$(MAKE) pull
 	@$(MAKE) up
 
-up: network ## Запустить контейнеры и применить изменения Compose или .env
-	@$(COMPOSE) up -d
+up: network ## Запустить контейнеры; SERVICE=webmail только веб-почту
+	@$(COMPOSE) up -d $(SERVICE)
 
 down: ## Остановить и удалить контейнеры, сохранив данные
 	@$(COMPOSE) down
@@ -42,10 +42,10 @@ down: ## Остановить и удалить контейнеры, сохра
 restart: ## Перезапустить контейнеры без применения изменений Compose или .env
 	@$(COMPOSE) restart
 
-pull: ## Скачать образы указанных в Compose и .env версий
-	@$(COMPOSE) pull
+pull: ## Скачать образы; SERVICE=webmail только веб-почту
+	@$(COMPOSE) pull $(SERVICE)
 
-logs: ## Смотреть логи, SERVICE=stalwart или SERVICE=stalwart-antivirus; без SERVICE все
+logs: ## Смотреть логи, SERVICE=stalwart, stalwart-antivirus или webmail; без SERVICE все
 	@$(COMPOSE) logs -f --tail=100 $(SERVICE)
 
 ps: ## Показать состояние контейнеров

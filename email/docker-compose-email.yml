@@ -1,6 +1,36 @@
 name: ${PROJECT_NAME}
 
 services:
+  webmail:
+    image: ghcr.io/bulwarkmail/webmail:${BULWARK_VERSION}
+    container_name: bulwark-container
+    restart: unless-stopped
+    init: true
+    environment:
+      TZ: Asia/Krasnoyarsk
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      JMAP_SERVER_URL: ${WEBMAIL_JMAP_URL}
+      ALLOW_CUSTOM_JMAP_ENDPOINT: "false"
+      STALWART_ADMIN_ACCESS: "off"
+      OAUTH_ENABLED: "false"
+      LOGIN_SHOW_REMEMBER_ME: "true"
+      BULWARK_TELEMETRY: "off"
+    extra_hosts:
+      - "${MAIL_HOSTNAME}:host-gateway"
+    ports:
+      - "127.0.0.1:${WEBMAIL_PORT}:3000"
+    volumes:
+      - webmail:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - network-name
+
   stalwart:
     image: stalwartlabs/stalwart:${STALWART_VERSION}
     container_name: stalwart-container
@@ -39,6 +69,8 @@ services:
           - antivirus
 
 volumes:
+  webmail:
+    name: ${BULWARK_DATA_VOLUME}
   config:
     name: ${STALWART_CONFIG_VOLUME}
   data:
