@@ -1,0 +1,43 @@
+name: vennro-email
+
+services:
+  stalwart:
+    image: stalwartlabs/stalwart:${STALWART_VERSION}
+    hostname: ${MAIL_HOSTNAME}
+    restart: unless-stopped
+    init: true
+    environment:
+      TZ: Asia/Krasnoyarsk
+      STALWART_PUBLIC_URL: https://${MAIL_HOSTNAME}
+    ports:
+      - "25:25"
+      - "465:465"
+      - "993:993"
+      - "4190:4190"
+      - "127.0.0.1:${ADMIN_PORT}:443"
+      - "127.0.0.1:${SETUP_PORT}:8080"
+    volumes:
+      - config:/etc/stalwart
+      - data:/var/lib/stalwart
+    networks:
+      - default
+      - proxy
+
+  antivirus:
+    image: clamav/clamav-debian:1.4
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Krasnoyarsk
+      CLAMAV_NO_MILTERD: "false"
+    volumes:
+      - clamav:/var/lib/clamav
+
+volumes:
+  config:
+  data:
+  clamav:
+
+networks:
+  proxy:
+    external: true
+    name: proxy
