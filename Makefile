@@ -5,11 +5,12 @@ export
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn
 .PHONY: archive unarchive clear-mac-copy upload hosts tunnel hex-32 hex-64 push
+.PHONY: email deploy-email
 
 TUNNELS = $(T_CENTRIFUGO_WS) $(T_CENTRIFUGO_API) $(T_MARIADB) $(T_PMA) $(T_GLITCHTIP) \
 $(T_LIVEKIT) $(T_NGINX) $(T_RUSTFS_API) $(T_RUSTFS_WEB) $(T_PORTAINER) $(T_REDIS) \
 $(T_REDIS_WEB) $(T_RABBIT_AMQP) $(T_RABBIT_WEB) $(T_POSTGRES) $(T_POSTGRES_WEB) $(T_REGISTRY) \
-$(T_REGISTRY_WEB) $(T_ROUTER)
+$(T_REGISTRY_WEB) $(T_EMAIL_ADMIN) $(T_EMAIL_SETUP) $(T_ROUTER)
 
 ##@ Помощь
 
@@ -28,7 +29,7 @@ env: ## Безопасно скопировать .env из example
 
 ##@ Инициализация
 
-init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit rclone mail vpn ## Инициализировать все сервисы
+init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit rclone email vpn ## Инициализировать все сервисы
 
 define check-env
 	@if [ -f $(1)/.env ]; then \
@@ -80,12 +81,15 @@ rclone: ## Инициализировать Rclone
 mail: ## Инициализировать Mail
 	$(call check-env,mail)
 
+email: ## Инициализировать Stalwart; предварительно остановить Mailu
+	$(call check-env,email)
+
 vpn: ## Инициализировать VPN
 	$(call check-env,vpn)
 
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn ## Отправить production-конфиги на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-email deploy-vpn ## Отправить production-конфиги на сервер
 
 define check-deploy
 	@if [ -f $(1)/.env.prod ]; then \
@@ -136,6 +140,9 @@ deploy-rclone: ## Отправить .env.prod Rclone на сервер
 
 deploy-mail: ## Отправить .env.prod Mail на сервер
 	$(call check-deploy,mail)
+
+deploy-email: ## Отправить .env.prod Stalwart на сервер
+	$(call check-deploy,email)
 
 deploy-vpn: ## Отправить .env.prod VPN на сервер
 	$(call check-deploy,vpn)

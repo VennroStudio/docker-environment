@@ -1,14 +1,39 @@
-.DEFAULT_GOAL := ps
+include .env.example
+-include .env
+export
 
-COMPOSE = docker compose --env-file .env -f docker-compose-email.yml
+COMPOSE_FILE ?= docker-compose-email.yml
+COMPOSE = docker compose -f $(COMPOSE_FILE)
 
-.PHONY: init up down restart pull logs ps config
+.PHONY: help env network init up down restart pull logs ps config
 
-init: ## Скачать образы и запустить; предварительно заполнить .env
+##@ Помощь
+
+help: ## Показать список команд
+	@echo ""
+	@awk 'BEGIN {FS = ":.*?## "} \
+	   /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } \
+	   /^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 }' \
+	   $(MAKEFILE_LIST)
+	@echo ""
+
+##@ .env
+
+env: ## Безопасно скопировать .env из example
+	@[ -f .env ] || cp .env.example .env
+
+##@ Сеть
+
+network: env ## Создать внешнюю сеть, если она ещё не существует
+	@docker network inspect $(NETWORK) >/dev/null 2>&1 || docker network create $(NETWORK)
+
+##@ Email
+
+init: env network ## Скачать образы и запустить; предварительно заполнить .env
 	@$(MAKE) pull
 	@$(MAKE) up
 
-up: ## Запустить контейнеры и применить изменения Compose или .env
+up: network ## Запустить контейнеры и применить изменения Compose или .env
 	@$(COMPOSE) up -d
 
 down: ## Остановить и удалить контейнеры, сохранив данные
@@ -20,7 +45,7 @@ restart: ## Перезапустить контейнеры без примен�
 pull: ## Скачать образы указанных в Compose и .env версий
 	@$(COMPOSE) pull
 
-logs: ## Смотреть логи, SERVICE=stalwart или SERVICE=antivirus; без SERVICE все
+logs: ## Смотреть логи, SERVICE=stalwart или SERVICE=stalwart-antivirus; без SERVICE все
 	@$(COMPOSE) logs -f --tail=100 $(SERVICE)
 
 ps: ## Показать состояние контейнеров

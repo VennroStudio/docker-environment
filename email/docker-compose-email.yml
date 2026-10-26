@@ -1,8 +1,9 @@
-name: vennro-email
+name: ${PROJECT_NAME}
 
 services:
   stalwart:
     image: stalwartlabs/stalwart:${STALWART_VERSION}
+    container_name: stalwart-container
     hostname: ${MAIL_HOSTNAME}
     restart: unless-stopped
     init: true
@@ -20,24 +21,33 @@ services:
       - config:/etc/stalwart
       - data:/var/lib/stalwart
     networks:
-      - default
-      - proxy
+      - email
+      - network-name
 
-  antivirus:
+  stalwart-antivirus:
     image: clamav/clamav-debian:1.4
+    container_name: stalwart-antivirus-container
     restart: unless-stopped
     environment:
       TZ: Asia/Krasnoyarsk
       CLAMAV_NO_MILTERD: "false"
     volumes:
       - clamav:/var/lib/clamav
+    networks:
+      email:
+        aliases:
+          - antivirus
 
 volumes:
   config:
+    name: ${STALWART_CONFIG_VOLUME}
   data:
+    name: ${STALWART_DATA_VOLUME}
   clamav:
+    name: ${CLAMAV_VOLUME}
 
 networks:
-  proxy:
+  email:
+  network-name:
     external: true
-    name: proxy
+    name: ${NETWORK}
