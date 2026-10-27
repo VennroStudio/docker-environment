@@ -2,7 +2,7 @@
 
 Stalwart для почты, ClamAV для проверки писем и Bulwark для веб-почты. Каждый сервис работает в отдельном контейнере.
 
-В примерах замени `example.com`, `PUBLIC_IP` и `SSH_HOST` на свой домен, IP сервера и SSH-профиль. Настройки Nginx Proxy Manager (NPM) меняй только через его панель. После запуска выполни этапы 1–8 ниже.
+В примерах замени `example.com`, `PUBLIC_IP` и `SSH_HOST` на свой домен, IP сервера и SSH-профиль. Настройки Nginx Proxy Manager (NPM) меняй только через его панель. После запуска выполни этапы 1–9 ниже.
 
 ## Быстрый старт
 
@@ -24,7 +24,7 @@ make config
 make init
 ```
 
-`make init` скачает образы, создаст сеть/volumes и запустит контейнеры. Это не переносит данные Mailu и не завершает настройку: выполни этапы 1–8. Из корня проекта: `make email`; отправка `.env.prod` на сервер: `make deploy-email`.
+`make init` скачает образы, создаст сеть/volumes и запустит контейнеры. Это не переносит данные Mailu и не завершает настройку: выполни этапы 1–9. Из корня проекта: `make email`; отправка `.env.prod` на сервер: `make deploy-email`.
 
 ## Настройка `.env`
 
@@ -290,7 +290,7 @@ location @stalwart_acme {
 
 `rua` задаёт адрес отчётов, но не создаёт ящик. TLS-RPT не включает MTA-STS: не публикуй `_mta-sts` без отдельно настроенной HTTPS-политики.
 
-В **Settings → Network → Services** оставь рекламируемые IMAP, SMTP, JMAP и ManageSieve. Для IMAP/SMTP выключи cleartext, не рекламируй POP3 и другие неиспользуемые сервисы. Если изменения ещё не применились, перезапусти только Stalwart и проверь XML на этапе 8.
+В **Settings → Network → Services** оставь рекламируемые IMAP, SMTP, JMAP и ManageSieve. Для IMAP/SMTP выключи cleartext, не рекламируй POP3 и другие неиспользуемые сервисы. Если изменения ещё не применились, перезапусти только Stalwart и проверь XML на этапе 9.
 
 В панели NPM создай **отдельный Proxy Host**:
 
@@ -356,7 +356,52 @@ docker logs --since 10m stalwart-container 2>&1 | grep -iE 'acme|certificate'
 
 Успех — `acme.order-completed` для `mail.example.com` и проверка TLS на портах `465/993`. Stalwart применяет сертификат автоматически; после успешного выпуска перезапуск не нужен. Продление автоматическое: маршрут ACME и порт `80` должны оставаться доступными. При ошибке смотри **Management → Tasks → Failed**, не создавай провайдера повторно.
 
-## 8. Итоговая проверка
+## 8. Антивирус
+
+1. Из папки `email` выполни `make up SERVICE=stalwart-antivirus`. Дождись `Starting clamav milterd` в `make logs SERVICE=stalwart-antivirus`.
+2. В админке через SSH открой **Settings → MTA → Filters → Milters → Create milter**:
+
+| Поле | Значение |
+|---|---|
+| Host / Port | `stalwart-antivirus` / `7357` |
+| Enable | `true` без ограничения по listener |
+| Run on stages | Только `DATA` |
+| Protocol Version | `Version 6` |
+| Enable TLS / Allow Invalid Certs | Выключено; соединение внутри Docker-сети `email` |
+| TempFail on Error | Включено |
+| Остальные поля | По умолчанию |
+
+3. Нажми Create и примени настройки: `docker restart stalwart-container`. В проверенной версии 1.0.0 одного сохранения было недостаточно.
+4. Отправь на свой тестовый ящик обычное вложение и безопасный [тестовый файл EICAR](https://www.eicar.org/download-anti-malware-testfile/) отдельно через SMTP и веб-почту. Чистое письмо должно доставляться, EICAR — отклоняться; SMTP-ответ: `550 5.7.1 Rejected by antivirus: Eicar-Test-Signature`.
+5. Проверь журнал обнаружений:
+
+```bash
+make antivirus-logs
+```
+
+Последние 50 строк: `make antivirus-logs`. Следить в реальном времени: `make antivirus-logs-follow`, остановить просмотр — `Ctrl+C`. Из корня проекта: `make -C email antivirus-logs` или `make -C email antivirus-logs-follow`.
+
+Пример записи (адреса заменены на `example.com`):
+
+```text
+Tue Oct 27 17:14:23 2026 -> Message from <info@example.com> to <postmaster@example.com> infected by Eicar-Signature
+```
+
+В записи указаны время, заявленный адрес отправителя, получатель и угроза. При `Reject` письмо получателю не доставляется. Адрес отправителя входящего письма может быть подделан.
+
+Compose монтирует `config/clamav-milter.conf` только для чтения: чистое письмо — `Accept`, заражённое — `Reject`, ошибка сканера — `Defer`. При недоступности Milter Stalwart временно отказывает в приёме вместо пропуска проверки. Порт `7357` наружу не публикуется.
+
+После изменения самого `clamav-milter.conf` пересоздай только антивирус и дождись его готовности:
+
+```bash
+docker compose --env-file .env.example --env-file .env -f docker-compose-email.yml up -d --no-deps --force-recreate stalwart-antivirus
+```
+
+Milter проверяет SMTP и отправку через JMAP, но не пересканирует старые письма. EICAR подтверждает подключение фильтра, не обнаружение всех угроз: действуют лимиты сканера, зашифрованные вложения нельзя полностью проверить. В конфигурации Milter лимит сообщения `100M`; превышающие его письма могут пропускаться без проверки. Не увеличивай лимит писем Stalwart выше лимитов сканера.
+
+Документация: [Milter](https://stalw.art/docs/mta/filter/milter/), [этапы фильтрации SMTP/JMAP](https://stalw.art/docs/mta/filter/).
+
+## 9. Итоговая проверка
 
 DNS:
 
@@ -405,10 +450,6 @@ curl --fail-with-body -H 'Content-Type: text/xml' \
 
 Документация: [ACME](https://stalw.art/docs/server/tls/acme/configuration/), [автонастройка](https://stalw.art/docs/server/autoconfig/), [DMARC rua](https://www.rfc-editor.org/rfc/rfc7489.html#section-6.3), [TLS Reporting](https://www.rfc-editor.org/rfc/rfc8460.html#section-3).
 
-## Антивирус
-
-Наличие ClamAV не включает фильтрацию автоматически. Отдельно подключи Milter в Stalwart к `stalwart-antivirus:7357`, включи временный отказ при недоступности фильтра и проверь обработку вложений через SMTP/JMAP. Не считай антивирус настроенным без теста. Alias `antivirus` сохранён внутри сети `email`.
-
 ## Ошибка прав при выпуске сертификата NPM
 
 При `Permission denied: /data/logs/letsencrypt.log` проверь владельца этого файла и UID/GID процесса Certbot/NPM. В проверенной установке процесс работал как `1000:1000`, файл принадлежал `root`; исправлялся только владелец файла:
@@ -437,6 +478,8 @@ docker exec --user 0 nginx-container chown 1000:1000 /data/logs/letsencrypt.log
 | `make logs` | Логи всех контейнеров (последние 100 строк, live) |
 | `make logs SERVICE=stalwart` | Логи почтового сервера |
 | `make logs SERVICE=stalwart-antivirus` | Логи антивируса |
+| `make antivirus-logs` | Последние 50 строк журнала обнаружений: отправитель, получатель, угроза |
+| `make antivirus-logs-follow` | Журнал обнаружений в реальном времени; выход `Ctrl+C` |
 | `make logs SERVICE=webmail` | Логи веб-почты |
 | `make ps` | Показать состояние контейнеров |
 | `make config` | Проверить и показать итоговый Compose-конфиг |

@@ -5,7 +5,7 @@ export
 COMPOSE_FILE ?= docker-compose-email.yml
 COMPOSE = docker compose -f $(COMPOSE_FILE)
 
-.PHONY: help env network init up down restart pull logs ps config
+.PHONY: help env network init up down restart pull logs antivirus-logs antivirus-logs-follow ps config
 
 ##@ Помощь
 
@@ -47,6 +47,12 @@ pull: ## Скачать образы; SERVICE=webmail только веб-поч
 
 logs: ## Смотреть логи, SERVICE=stalwart, stalwart-antivirus или webmail; без SERVICE все
 	@$(COMPOSE) logs -f --tail=100 $(SERVICE)
+
+antivirus-logs: ## Последние 50 строк журнала обнаружений; пример: make antivirus-logs
+	@$(COMPOSE) exec -T stalwart-antivirus tail -n 50 /var/log/clamav/milter.log
+
+antivirus-logs-follow: ## Следить за обнаружениями в реальном времени; пример: make antivirus-logs-follow
+	@$(COMPOSE) exec -T stalwart-antivirus tail -f /var/log/clamav/milter.log
 
 ps: ## Показать состояние контейнеров
 	@$(COMPOSE) ps

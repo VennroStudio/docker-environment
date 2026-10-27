@@ -63,6 +63,7 @@ services:
       CLAMAV_NO_MILTERD: "false"
     volumes:
       - clamav:/var/lib/clamav
+      - ./config/clamav-milter.conf:/etc/clamav/clamav-milter.conf:ro
     networks:
       email:
         aliases:
