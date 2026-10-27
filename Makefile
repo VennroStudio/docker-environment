@@ -1,9 +1,9 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit rclone mail vpn
+.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit rclone vpn
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
-.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-mail deploy-vpn
+.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-vpn
 .PHONY: archive unarchive clear-mac-copy upload hosts tunnel hex-32 hex-64 push
 .PHONY: email deploy-email
 
@@ -78,10 +78,7 @@ tiredofit: ## Инициализировать TiredOfIt DB Backup
 rclone: ## Инициализировать Rclone
 	$(call check-env,rclone)
 
-mail: ## Инициализировать Mail
-	$(call check-env,mail)
-
-email: ## Инициализировать Stalwart; предварительно остановить Mailu
+email: ## Инициализировать Stalwart
 	$(call check-env,email)
 
 vpn: ## Инициализировать VPN
@@ -137,9 +134,6 @@ deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
 
 deploy-rclone: ## Отправить .env.prod Rclone на сервер
 	$(call check-deploy,rclone)
-
-deploy-mail: ## Отправить .env.prod Mail на сервер
-	$(call check-deploy,mail)
 
 deploy-email: ## Отправить .env.prod Stalwart на сервер
 	$(call check-deploy,email)
