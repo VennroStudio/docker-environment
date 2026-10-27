@@ -45,8 +45,8 @@ services:
       - "465:465"
       - "993:993"
       - "4190:4190"
-      - "127.0.0.1:${ADMIN_PORT}:443"
-      - "127.0.0.1:${SETUP_PORT}:8080"
+      - "127.0.0.1:${HTTPS_PORT}:443"
+      - "127.0.0.1:${ADMIN_PORT}:8080"
     volumes:
       - config:/etc/stalwart
       - data:/var/lib/stalwart
