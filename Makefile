@@ -6,6 +6,7 @@ export
 .PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-nfrastack deploy-rclone deploy-vpn
 .PHONY: archive unarchive clear-mac-copy upload hosts tunnel hex-32 hex-64 push
 .PHONY: email deploy-email
+.PHONY: cloudflared deploy-cloudflared
 
 TUNNELS = $(T_CENTRIFUGO_WS) $(T_CENTRIFUGO_API) $(T_MARIADB) $(T_PMA) $(T_GLITCHTIP) \
 $(T_LIVEKIT) $(T_NGINX) $(T_RUSTFS_API) $(T_RUSTFS_WEB) $(T_PORTAINER) $(T_REDIS) \
@@ -29,7 +30,7 @@ env: ## Безопасно скопировать .env из example
 
 ##@ Инициализация
 
-init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip nfrastack rclone email vpn ## Инициализировать все сервисы
+init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip nfrastack rclone email vpn cloudflared ## Инициализировать все сервисы
 
 define check-env
 	@if [ -f $(1)/.env ]; then \
@@ -84,9 +85,12 @@ email: ## Инициализировать Stalwart
 vpn: ## Инициализировать VPN
 	$(call check-env,vpn)
 
+cloudflared: ## Подготовить Cloudflared без публикации сервисов
+	$(call check-env,cloudflared)
+
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-nfrastack deploy-rclone deploy-email deploy-vpn ## Отправить production-конфиги на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-nfrastack deploy-rclone deploy-email deploy-vpn deploy-cloudflared ## Отправить production-конфиги на сервер
 
 define check-deploy
 	@if [ -f $(1)/.env.prod ]; then \
@@ -140,6 +144,9 @@ deploy-email: ## Отправить .env.prod Stalwart на сервер
 
 deploy-vpn: ## Отправить .env.prod VPN на сервер
 	$(call check-deploy,vpn)
+
+deploy-cloudflared: ## Отправить .env.prod Cloudflared на сервер
+	$(call check-deploy,cloudflared)
 
 ##@ Архиватор
 archive: ## Архивирование в формате data-DD-MM-YYYY, передать FOLDER=folderName

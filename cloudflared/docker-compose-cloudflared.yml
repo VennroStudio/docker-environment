@@ -1,0 +1,27 @@
+name: ${PROJECT_NAME}
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:${CLOUDFLARED_VERSION}
+    command: tunnel --no-autoupdate --protocol ${CLOUDFLARED_PROTOCOL} --url http://${CONTAINER:-localhost}:${PORT:-80}
+    restart: "no"
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m
+    networks:
+      - network-name
+    logging:
+      driver: json-file
+      options:
+        max-size: 5m
+        max-file: "2"
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
