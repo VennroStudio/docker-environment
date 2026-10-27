@@ -1,9 +1,9 @@
 -include .env
 export
 
-.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip tiredofit rclone vpn
+.PHONY: env help init centrifugo livekit mariadb postgres nginx portainer rabbitmq redis registry rustfs glitchtip nfrastack rclone vpn
 .PHONY: deploy deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx
-.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-vpn
+.PHONY: deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-nfrastack deploy-rclone deploy-vpn
 .PHONY: archive unarchive clear-mac-copy upload hosts tunnel hex-32 hex-64 push
 .PHONY: email deploy-email
 
@@ -29,7 +29,7 @@ env: ## Безопасно скопировать .env из example
 
 ##@ Инициализация
 
-init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip tiredofit rclone email vpn ## Инициализировать все сервисы
+init: centrifugo livekit mariadb nginx portainer rabbitmq redis registry rustfs postgres glitchtip nfrastack rclone email vpn ## Инициализировать все сервисы
 
 define check-env
 	@if [ -f $(1)/.env ]; then \
@@ -72,8 +72,8 @@ rustfs: ## Инициализировать RustFS
 glitchtip: ## Инициализировать GlitchTip
 	$(call check-env,glitchtip)
 
-tiredofit: ## Инициализировать TiredOfIt DB Backup
-	$(call check-env,tiredofit)
+nfrastack: ## Инициализировать Nfrastack DB Backup
+	$(call check-env,nfrastack)
 
 rclone: ## Инициализировать Rclone
 	$(call check-env,rclone)
@@ -86,7 +86,7 @@ vpn: ## Инициализировать VPN
 
 ##@ Production
 
-deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-tiredofit deploy-rclone deploy-email deploy-vpn ## Отправить production-конфиги на сервер
+deploy: deploy-centrifugo deploy-livekit deploy-mariadb deploy-nginx deploy-portainer deploy-rabbitmq deploy-redis deploy-registry deploy-rustfs deploy-postgres deploy-glitchtip deploy-nfrastack deploy-rclone deploy-email deploy-vpn ## Отправить production-конфиги на сервер
 
 define check-deploy
 	@if [ -f $(1)/.env.prod ]; then \
@@ -129,8 +129,8 @@ deploy-postgres: ## Отправить .env.prod PostgreSQL на сервер
 deploy-glitchtip: ## Отправить .env.prod GlitchTip на сервер
 	$(call check-deploy,glitchtip)
 
-deploy-tiredofit: ## Отправить .env.prod TiredOfIt на сервер
-	$(call check-deploy,tiredofit)
+deploy-nfrastack: ## Отправить .env.prod Nfrastack DB Backup на сервер
+	$(call check-deploy,nfrastack)
 
 deploy-rclone: ## Отправить .env.prod Rclone на сервер
 	$(call check-deploy,rclone)
@@ -153,7 +153,7 @@ clear-mac-copy: ## Очистка файлов MAC в архиве
 
 ##@ Файлы
 
-upload: ## Отправить файл на сервер, FILE=path/to/file SERVICE=tiredofit REMOTE_DIR=backup NAME=dump.sql.gz
+upload: ## Отправить файл на сервер, FILE=path/to/file SERVICE=nfrastack REMOTE_DIR=backup NAME=dump.sql.gz
 	scp -P $(PORT) "$(FILE)" "$(HOST):$(DOCKER_SERVER_PATH)/$(SERVICE)/$(REMOTE_DIR)/$(NAME)"
 
 ##@ Hosts

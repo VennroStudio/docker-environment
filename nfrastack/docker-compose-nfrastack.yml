@@ -1,0 +1,25 @@
+name: ${PROJECT_NAME}
+
+services:
+  nfrastack:
+    image: nfrastack/db-backup:${DB_BACKUP_VERSION}
+    container_name: nfrastack-container
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "test -f /container/state/init/10-dbbackup && test -x /usr/bin/backup-now"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    env_file:
+      - .env
+    volumes:
+      - ./backup:/backup
+      - ./logs:/logs
+    networks:
+      - network-name
+
+networks:
+  network-name:
+    name: ${NETWORK}
+    external: true
